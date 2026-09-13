@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}寻脉 - 方言分布地图{% endblock %}
 {% block head_styles %}
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="{{ url_for('static_bp.static_files', filename='css/leaflet.css') }}?v=20260913">
     <style>
         :root {
             --primary-blue: #1e40af;
@@ -21,7 +21,7 @@
         }
 
         body {
-            font-family: 'Noto Serif SC', 'Microsoft YaHei', 'PingFang SC', serif;
+            font-family: "Songti SC", "SimSun", "Noto Serif SC", serif;
             margin: 0;
             padding: 0;
             background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 40%, var(--gradient-end) 100%);
@@ -281,7 +281,7 @@
         }
 
         .navbar-brand {
-            font-family: 'Ma Shan Zheng', cursive;
+            font-family: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", system-ui, sans-serif;
             font-size: 2.2rem !important;
             color: #0ea5e9 !important;
             letter-spacing: 0.1em;
@@ -335,7 +335,7 @@
 {% endblock %}
 
 {% block scripts %}
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="{{ url_for('static_bp.static_files', filename='js/leaflet.js') }}?v=20260913"></script>
     <script>
         // 创建动态背景元素（优化性能）
         function createDynamicBackground() {

@@ -16,5 +16,5 @@ def serve_output(filename):
 
 
 @static_bp.route('/static/<path:filename>')
-def serve_static(filename):
+def static_files(filename):
     return send_from_directory(Config.STATIC_DIR, filename)

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}语言演变模拟 - 寻脉方言系统{% endblock %}
 {% block head_styles %}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static_bp.static_files', filename='js/chart.umd.min.js') }}?v=20260913"></script>
     <style>
         :root {
             --primary-blue: #1e40af;
@@ -18,7 +18,7 @@
         }
 
         body {
-            font-family: 'Noto Serif SC', 'Microsoft YaHei', 'PingFang SC', serif;
+            font-family: "Songti SC", "SimSun", "Noto Serif SC", serif;
             background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 40%, var(--gradient-end) 100%);
             color: var(--text-dark);
             position: relative;
@@ -172,7 +172,7 @@
         }
 
         .navbar-brand {
-            font-family: 'Ma Shan Zheng', cursive;
+            font-family: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", system-ui, sans-serif;
             font-size: 2.2rem !important;
             color: #0ea5e9 !important;
             letter-spacing: 0.1em;
@@ -226,7 +226,7 @@
         }
 
         .page-header h1 {
-            font-family: 'Ma Shan Zheng', cursive;
+            font-family: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", system-ui, sans-serif;
             font-size: 3.5rem;
             margin-bottom: 0.5rem;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
@@ -334,7 +334,7 @@
         }
 
         .year-display {
-            font-family: 'ZCOOL KuaiLe', cursive;
+            font-family: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", system-ui, sans-serif;
             font-size: 4rem;
             background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 100%);
             -webkit-background-clip: text;
@@ -367,7 +367,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            font-family: 'ZCOOL KuaiLe', cursive;
+            font-family: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", system-ui, sans-serif;
         }
 
         .stat-label {
@@ -468,7 +468,7 @@
         }
 
         footer h5 {
-            font-family: 'Ma Shan Zheng', cursive;
+            font-family: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", system-ui, sans-serif;
             font-size: 1.5rem;
             margin-bottom: 1rem;
         }

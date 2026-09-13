@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}寻脉 - 统计分析{% endblock %}
 {% block head_styles %}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static_bp.static_files', filename='js/chart.umd.min.js') }}?v=20260913"></script>
     <style>
         .stat-card {
             background: rgba(255, 255, 255, 0.95);
@@ -58,7 +58,7 @@
         }
 
         .navbar-brand {
-            font-family: 'Ma Shan Zheng', cursive;
+            font-family: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", system-ui, sans-serif;
             font-size: 2.2rem !important;
             color: #0ea5e9 !important;
             letter-spacing: 0.1em;
@@ -99,7 +99,7 @@
     <div class="bg-glow-2"></div>
     <div class="bg-glow-3"></div>
 
-    <div class="container" style="padding-top: 100px; padding-bottom: 50px;">
+    <div class="container" style="padding-top: 20px; padding-bottom: 50px;">
         <h1 class="text-center mb-8" style="color: white; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);">📊 方言数据统计分析</h1>
 
         <div class="analysis-card mb-8">

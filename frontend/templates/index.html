@@ -2,6 +2,7 @@
 {% block title %}寻脉 - 方言地理分布与语言演变可视化教学平台{% endblock %}
 {% block head_styles %}
     <style>
+        body { padding-top: 0; }  /* 首页 hero-section 自带顶部间距，覆盖 base 的 80px */
         :root {
             --primary-blue: #1e40af;
             --secondary-blue: #3b82f6;
@@ -226,11 +227,11 @@
         }
 
         .navbar-brand {
-            font-family: 'Ma Shan Zheng', cursive;
+            font-family: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", system-ui, sans-serif;
             font-size: 2.2rem !important;
             color: #0ea5e9 !important;
-            letter-spacing: 0.1em;
-            font-weight: 500;
+            letter-spacing: 0.08em;
+            font-weight: 800;
         }
         
         .navbar-brand i {
@@ -273,12 +274,13 @@
             overflow: hidden;
         }
 
-        /* 艺术字标题 */
+        /* 艺术字标题 - 苹果风格圆润粗体 */
         .title-xunmai {
-            font-family: 'ZCOOL KuaiLe', cursive;
+            font-family: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", system-ui, sans-serif;
             font-size: 9rem;
+            font-weight: 900;
             color: #ffffff;
-            letter-spacing: 0.3em;
+            letter-spacing: 0.25em;
             position: relative;
             display: inline-block;
             animation: pulse-glow 4s ease-in-out infinite;
@@ -288,7 +290,7 @@
                 0 0 40px rgba(6, 182, 212, 0.6),
                 0 0 60px rgba(6, 182, 212, 0.4),
                 1px 1px 2px rgba(0, 0, 0, 0.4);
-            -webkit-text-stroke: 1px rgba(6, 182, 212, 0.8);
+            -webkit-text-stroke: 2px rgba(6, 182, 212, 0.6);
         }
 
         @keyframes pulse-glow {
@@ -327,7 +329,7 @@
 
         /* 副标题 */
         .subtitle {
-            font-family: 'Noto Serif SC', serif;
+            font-family: "Songti SC", "SimSun", "Noto Serif SC", serif;
             font-size: 1.5rem;
             color: rgba(255, 255, 255, 0.9);
             letter-spacing: 0.2em;
@@ -685,7 +687,7 @@
                             <div class="mb-3" style="width: 90px; height: 90px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                                 <i class="fas fa-language" style="color: #ffffff; font-size: 2.8rem;"></i>
                             </div>
-                            <div class="text-white/80 text-4xl font-bold" style="font-family: 'Ma Shan Zheng', cursive; letter-spacing: 0.15em;">方言</div>
+                            <div class="text-white/80 text-4xl font-bold" style="font-family: 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', system-ui, sans-serif; font-weight: 900; letter-spacing: 0.15em;">方言</div>
                             <div class="text-white/50 mt-1 text-sm">Chinese Dialects</div>
                         </div>
                         <div class="card-body p-4 bg-white/10 backdrop-blur-sm">
