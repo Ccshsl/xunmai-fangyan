@@ -15,8 +15,8 @@
 │   └── run.py             # 后端入口
 ├── frontend/              # 前端
 │   ├── templates/         # Jinja2 模板（base.html + 各页面）
-│   └── static/            # 静态资源（css / js / assets）
-├── scripts/               # 启动 / 停止 / 分析 bat 脚本
+│   └── static/            # 静态资源（css / js / webfonts / images，全部本地化，零 CDN 依赖）
+├── scripts/               # 启动 / 分析 bat 脚本
 ├── docs/                  # 架构与 API 文档
 └── 启动系统.bat           # 一键启动（根目录快捷入口）
 ```
@@ -32,13 +32,11 @@
 1. 启动后端服务（端口 5000）
 2. 打开浏览器访问 `http://localhost:5000`
 
-## 其他命令
+## 其他脚本
 | 脚本 | 说明 |
 |------|------|
-| `scripts\start_backend.bat` | 仅启动后端 |
-| `scripts\start_frontend.bat` | 预览 `backend\outputs`（端口 8000，开发用） |
+| `scripts\start.bat` | 一键启动后端并打开浏览器（根目录 `启动系统.bat` 调用此脚本） |
 | `scripts\run_analysis.bat` | 运行数据分析流水线（产出到 `backend\outputs`） |
-| `scripts\stop.bat` | 停止后端与预览服务 |
 
 ## 手动启动后端
 ```bat
