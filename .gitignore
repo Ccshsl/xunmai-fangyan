@@ -17,6 +17,11 @@ venv/
 # 备份压缩包
 *.zip
 
+# 项目规划书 / Word 文档（不纳入代码仓库）
+*.doc
+*.docx
+*~$*
+
 # IDE / 系统
 .trae/
 .vscode/

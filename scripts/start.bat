@@ -1,33 +1,34 @@
 @echo off
 chcp 65001 >nul
-title å¯»è„‰æ–¹è¨€ç³»ç»Ÿ - ä¸€é”®å¯åŠ¨
+title Ñ°Âö·½ÑÔÏµÍ³ - Ò»¼üÆô¶¯
 echo ============================================
-echo  å¯»è„‰ - æ–¹è¨€åœ°ç†åˆ†å¸ƒä¸Žè¯­è¨€æ¼”å˜å¯è§†åŒ–å¹³å°
+echo   Ñ°Âö - ·½ÑÔµØÀí·Ö²¼ÓëÓïÑÔÑÝ±ä¿ÉÊÓ»¯Æ½Ì¨
 echo ============================================
 echo.
 
-rem å®šä½é¡¹ç›®æ ¹ç›®å½•ï¼ˆæœ¬è„šæœ¬ä½äºŽ scripts/ï¼Œä¸Šä¸€çº§å³é¡¹ç›®æ ¹ï¼‰
+setlocal enabledelayedexpansion
+rem ¶¨Î»ÏîÄ¿¸ùÄ¿Â¼£¨±¾½Å±¾Î»ÓÚ scripts/£¬ÉÏÒ»¼¶¼´ÏîÄ¿¸ù£©
 set "ROOT=%~dp0.."
 set "BACKEND=%ROOT%\backend"
 
-rem ä¼˜å…ˆä½¿ç”¨è™šæ‹ŸçŽ¯å¢ƒï¼Œå¦åˆ™å›žé€€åˆ°ç³»ç»Ÿ Python
+rem ÓÅÏÈÊ¹ÓÃÐéÄâ»·¾³£¬·ñÔò»ØÍËµ½ÃüÁîÐÐµÄ python
 set "PY=python"
-if exist "%BACKEND%\venv\Scripts\python.exe" (
-    set "PY=%BACKEND%\venv\Scripts\python.exe"
+if exist "%BACKEND%\venv\Scripts\python.exe" set "PY=%BACKEND%\venv\Scripts\python.exe"
+rem ÈôÃüÁîÐÐ python ²»¿ÉÓÃ£¬¶µµ×µ½±¾»úÄ¬ÈÏ°²×°Â·¾¶
+if "%PY%"=="python" (
+    python --version >nul 2>&1 || set "PY=%LOCALAPPDATA%\Programs\Python\Python313\python.exe"
 )
 
-echo å¯åŠ¨ç›®å½•ï¼š%BACKEND%
-echo æ­£åœ¨å¯åŠ¨åŽç«¯æœåŠ¡ï¼ˆç«¯å£ 5000ï¼‰...
+echo ºó¶ËÄ¿Â¼  : %BACKEND%
+echo ÕýÔÚÆô¶¯ºó¶Ë·þÎñ£¨¶Ë¿Ú 5000£©...
+start "Ñ°Âö-ºó¶Ë" /D "%BACKEND%" "%PY%" -u run.py
 
-rem åœ¨æ–°çª—å£ä¸­å¯åŠ¨åŽç«¯
-start "å¯»è„‰åŽç«¯" /D "%BACKEND%" "%PY%" run.py
-
-rem ç­‰å¾…æœåŠ¡å°±ç»ªåŽæ‰“å¼€æµè§ˆå™¨
+rem µÈ´ý·þÎñ¾ÍÐ÷ºó´ò¿ªä¯ÀÀÆ÷
 timeout /t 2 /nobreak >nul
 start "" "http://localhost:5000"
 
 echo.
-echo åŽç«¯å·²å¯åŠ¨ï¼Œæµè§ˆå™¨å°†è‡ªåŠ¨æ‰“å¼€ã€‚
-echo å¦‚éœ€åœæ­¢ï¼Œè¯·è¿è¡Œ scripts\stop.bat
+echo ºó¶ËÒÑÆô¶¯£¬ä¯ÀÀÆ÷½«×Ô¶¯´ò¿ª¡£
+echo ÈçÐèÍ£Ö¹£¬ÇëÔËÐÐ scripts\stop.bat
 echo.
 pause
