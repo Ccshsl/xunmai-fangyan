@@ -1,0 +1,1666 @@
+{% extends "base.html" %}
+{% block title %}人口迁移与方言演变 - 寻脉方言系统{% endblock %}
+{% block head_styles %}
+    <style>
+        body {
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .light-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        /* 发光圆环 */
+        .glow-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid rgba(6, 182, 212, 0.15);
+            animation: ringRotate 20s linear infinite;
+        }
+
+        .glow-ring:nth-child(1) {
+            width: 600px;
+            height: 600px;
+            top: -200px;
+            right: -100px;
+            border-color: rgba(30, 64, 175, 0.2);
+            animation-duration: 25s;
+        }
+
+        .glow-ring:nth-child(2) {
+            width: 400px;
+            height: 400px;
+            bottom: -100px;
+            left: -100px;
+            border-color: rgba(6, 182, 212, 0.25);
+            animation-duration: 18s;
+            animation-direction: reverse;
+        }
+
+        .glow-ring:nth-child(3) {
+            width: 300px;
+            height: 300px;
+            top: 40%;
+            left: 20%;
+            border-color: rgba(16, 185, 129, 0.2);
+            animation-duration: 15s;
+        }
+
+        @keyframes ringRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* 浮动光点 */
+        .float-light {
+            position: absolute;
+            border-radius: 50%;
+            animation: floatMove 10s ease-in-out infinite;
+        }
+
+        .float-light.blue {
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.6) 0%, transparent 70%);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5), 0 0 40px rgba(59, 130, 246, 0.3);
+        }
+
+        .float-light.cyan {
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.6) 0%, transparent 70%);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5), 0 0 40px rgba(6, 182, 212, 0.3);
+        }
+
+        .float-light.green {
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.6) 0%, transparent 70%);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.5), 0 0 40px rgba(16, 185, 129, 0.3);
+        }
+
+        @keyframes floatMove {
+            0%, 100% {
+                transform: translateY(0) translateX(0) scale(1);
+                opacity: 0.4;
+            }
+            25% {
+                transform: translateY(-30px) translateX(20px) scale(1.2);
+                opacity: 0.8;
+            }
+            50% {
+                transform: translateY(-50px) translateX(-10px) scale(1);
+                opacity: 0.6;
+            }
+            75% {
+                transform: translateY(-20px) translateX(-20px) scale(0.9);
+                opacity: 0.7;
+            }
+        }
+
+        /* 闪烁星点 */
+        .star {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s ease-in-out infinite;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* 浮动气泡 */
+        .bubble {
+            position: fixed;
+            border-radius: 50%;
+            animation: floatUp linear infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.6;
+            }
+            90% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(-10vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* 闪烁星点 */
+        .star {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: var(--secondary-green);
+            border-radius: 50%;
+            animation: twinkle ease-in-out infinite;
+            pointer-events: none;
+            z-index: -1;
+            box-shadow: 0 0 10px var(--light-green), 0 0 20px var(--mint-green);
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.5); }
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), 0 0 60px rgba(6, 182, 212, 0.15);
+            padding: 1rem 0;
+        }
+
+        .navbar-brand {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 2.2rem !important;
+            color: #0ea5e9 !important;
+            letter-spacing: 0.1em;
+            font-weight: 500;
+        }
+        
+        .navbar-brand i {
+            font-size: 1.5rem;
+            color: var(--gradient-mid);
+        }
+
+        .nav-link {
+            color: var(--text-secondary) !important;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover {
+            color: var(--gradient-mid) !important;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #1e40af 0%, #06b6d4 40%, #059669 100%);
+            color: white;
+            padding: 4rem 0;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.5;
+        }
+
+        .page-header h1 {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 3.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .timeline {
+            position: relative;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 0;
+        }
+
+        .timeline::after {
+            content: '';
+            position: absolute;
+            width: 4px;
+            background: rgba(255, 255, 255, 0.9);
+            top: 0; bottom: 0;
+            left: 50%;
+            margin-left: -2px;
+            border-radius: 2px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .timeline-item {
+            padding: 20px 50px;
+            position: relative;
+            width: 50%;
+            box-sizing: border-box;
+        }
+
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            right: -12px;
+            background: white;
+            border: 3px solid var(--gradient-mid);
+            top: 25px;
+            border-radius: 50%;
+            z-index: 1;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.6);
+        }
+
+        .left { left: 0; }
+        .right { left: 50%; }
+        .right::after { left: -14px; }
+
+        .timeline-content {
+            padding: 2rem;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(45, 106, 79, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .timeline-content:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(45, 106, 79, 0.15);
+        }
+
+        .timeline-date {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 2rem;
+            color: var(--gradient-start);
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1e3a5f;
+            margin-bottom: 1rem;
+            border-bottom: 3px solid var(--gradient-mid);
+            padding-bottom: 0.5rem;
+        }
+
+        .timeline-text {
+            color: #475569;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            text-align: justify;
+        }
+
+        .migration-box {
+            background: linear-gradient(135deg, var(--pale-green) 0%, white 100%);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid var(--primary-green);
+        }
+
+        .migration-box h6 {
+            color: var(--primary-green);
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+        }
+
+        .migration-route {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .route-point {
+            background: #059669;
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        .route-arrow {
+            color: #10b981;
+            font-size: 1.2rem;
+        }
+
+        .dialect-result {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--secondary-green) 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 1.5rem;
+        }
+
+        .dialect-result h5 {
+            font-weight: 700;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 0.5rem;
+        }
+
+        .dialect-result ul {
+            margin: 0;
+            padding-left: 1.2rem;
+        }
+
+        .dialect-result li {
+            margin-bottom: 0.5rem;
+            line-height: 1.7;
+        }
+
+        .event-tags {
+            margin: 1rem 0;
+        }
+
+        .event-tag {
+            display: inline-block;
+            background: var(--pale-green);
+            color: var(--primary-green);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .detail-section {
+            background: rgba(255,255,255,0.7);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .detail-section h6 {
+            color: var(--primary-green);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .data-table {
+            width: 100%;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        .data-table th {
+            background: var(--pale-green);
+            color: var(--primary-green);
+            padding: 0.6rem;
+            text-align: left;
+        }
+
+        .data-table td {
+            padding: 0.6rem;
+            border-bottom: 1px solid var(--pale-green);
+        }
+
+        .section-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .section-title {
+            color: #1e3a5f;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid var(--mint-green);
+        }
+
+        .case-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(45, 106, 79, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .case-header {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--secondary-green) 100%);
+            color: white;
+            padding: 1.5rem;
+        }
+
+        .case-body {
+            padding: 2rem;
+        }
+
+        .case-section {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px dashed var(--pale-green);
+        }
+
+        .case-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .case-section h5 {
+            color: var(--primary-green);
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin: 1rem 0;
+        }
+
+        .highlight-box strong {
+            color: #0ea5e9;
+            font-weight: 600;
+        }
+
+        .vocab-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .vocab-item {
+            background: var(--pale-green);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .vocab-word {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary-green);
+        }
+
+        .vocab-meaning {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-top: 0.3rem;
+        }
+
+        .factor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .factor-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(45, 106, 79, 0.08);
+            transition: transform 0.3s;
+        }
+
+        .factor-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .factor-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--pale-green) 0%, white 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2rem;
+            color: var(--primary-green);
+        }
+
+        .factor-card h5 {
+            color: var(--primary-green);
+            margin-bottom: 0.5rem;
+        }
+
+        .factor-card p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .process-flow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--pale-green) 0%, white 100%);
+            border-radius: 16px;
+            margin: 2rem 0;
+        }
+
+        .process-step {
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+            position: relative;
+        }
+
+        .process-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--secondary-green) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.8rem;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .process-arrow {
+            position: absolute;
+            right: -1rem;
+            top: 25px;
+            color: var(--mint-green);
+            font-size: 1.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(45, 106, 79, 0.08);
+        }
+
+        .stat-number {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 2.5rem;
+            color: var(--primary-green);
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        footer {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--secondary-green) 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+
+        footer h5 {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 1.5rem;
+        }
+
+        .footer-links a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            color: var(--mint-green);
+        }
+
+        @media screen and (max-width: 768px) {
+            .timeline::after { left: 31px; }
+            .timeline-item {
+                width: 100%;
+                padding-left: 70px;
+                padding-right: 25px;
+            }
+            .timeline-item::after { left: 17px; }
+            .right { left: 0; }
+            .process-arrow { display: none; }
+            .page-header h1 { font-size: 2.5rem; }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .timeline-content { animation: fadeInUp 0.6s ease-out; }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <!-- 动态背景元素 -->
+    <div class="bg-glow-1"></div>
+    <div class="bg-glow-2"></div>
+    <div class="bg-glow-3"></div>
+    
+    <!-- 页面标题 -->
+    <header class="page-header">
+        <div class="container text-center">
+            <h1><i class="fas fa-route me-2"></i>人口迁移与方言演变</h1>
+            <p>探索历史长河中，人口迁移如何塑造了中国丰富多彩的方言格局</p>
+        </div>
+    </header>
+
+    <!-- 主要内容 -->
+    <main class="container">
+        <!-- 引言部分 -->
+        <section class="section-card">
+            <h3 class="section-title"><i class="fas fa-book-open me-2"></i>研究背景与意义</h3>
+            <p style="color: #475569; line-height: 1.9; text-align: justify; font-size: 1.05rem;">
+                中国是世界上语言资源最丰富的国家之一，拥有汉藏、阿尔泰、南岛、南亚、印欧五大语系的130多种语言，以及十大汉语方言区。这些方言的形成与演变，与历史上的大规模人口迁移密不可分。从春秋战国到近现代，每一次人口的大规模流动，都深刻地改变了目的地方言的面貌，形成了今天我们所看到的丰富多彩的方言格局。
+            </p>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">130+</div>
+                    <div class="stat-label">语言种类</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">10</div>
+                    <div class="stat-label">大方言区</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">3000+</div>
+                    <div class="stat-label">年演变历史</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">14亿</div>
+                    <div class="stat-label">使用人口</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 连续过程展示 -->
+        <section class="section-card">
+            <h3 class="section-title"><i class="fas fa-sync-alt me-2"></i>人口迁移与方言演变的连续过程</h3>
+            <p style="color: #475569; line-height: 1.8; margin-bottom: 1.5rem; font-size: 1.05rem;">
+                方言的形成不是一蹴而就的，而是一个漫长的历史过程。以下是人口迁移导致方言演变的基本模式：
+            </p>
+            <div class="process-flow">
+                <div class="process-step">
+                    <div class="process-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <h6>战争/灾荒</h6>
+                    <small style="color: #64748b;">触发人口迁移</small>
+                    <div class="process-arrow">→</div>
+                </div>
+                <div class="process-step">
+                    <div class="process-icon"><i class="fas fa-users"></i></div>
+                    <h6>大规模迁徙</h6>
+                    <small style="color: #64748b;">携带母语迁移</small>
+                    <div class="process-arrow">→</div>
+                </div>
+                <div class="process-step">
+                    <div class="process-icon"><i class="fas fa-handshake"></i></div>
+                    <h6>语言接触</h6>
+                    <small style="color: #64748b;">与当地人交流</small>
+                    <div class="process-arrow">→</div>
+                </div>
+                <div class="process-step">
+                    <div class="process-icon"><i class="fas fa-dna"></i></div>
+                    <h6>语言变异</h6>
+                    <small style="color: #64748b;">吸收当地元素</small>
+                    <div class="process-arrow">→</div>
+                </div>
+                <div class="process-step">
+                    <div class="process-icon"><i class="fas fa-language"></i></div>
+                    <h6>新方言形成</h6>
+                    <small style="color: #64748b;">独特语言体系</small>
+                </div>
+            </div>
+        </section>
+
+        <!-- 时间线部分 -->
+        <section>
+            <h2 class="text-center mb-5" style="color: white; text-shadow: 0 0 15px rgba(255,255,255,0.6); font-size: 2rem;">
+                <i class="fas fa-history me-2" style="color: white; text-shadow: 0 0 15px rgba(255,255,255,0.8);"></i>历史演变时间线
+            </h2>
+
+            <div class="timeline">
+                <!-- 先秦时期 -->
+                <div class="timeline-item left">
+                    <div class="timeline-content">
+                        <div class="timeline-date">公元前770年 - 公元前221年</div>
+                        <h3 class="timeline-title">先秦时期：诸侯争霸与民族融合</h3>
+                        
+                        <p class="timeline-text">
+                            <strong>历史背景：</strong>春秋战国时期，周王室衰微，各诸侯国争霸天下。这一时期，齐、楚、燕、韩、赵、魏、秦七雄并立，各国之间战争频繁，但也促进了不同地区之间的交流与融合。
+                        </p>
+                        
+                        <div class="detail-section">
+                            <h6><i class="fas fa-info-circle me-1"></i>人口迁移特点</h6>
+                            <p style="color: var(--text-light); line-height: 1.7;">
+                                1. 战争导致人口流动：各国征战频繁，战败国人民往往被迁往战胜国<br>
+                                2. 商业贸易促进交流：商人往来于各国之间，促进了语言接触<br>
+                                3. 学者游说传播文化：诸子百家周游列国，传播思想的同时也促进了语言交流
+                            </p>
+                        </div>
+
+                        <div class="migration-box">
+                            <h6><i class="fas fa-route me-1"></i>主要迁移路线</h6>
+                            <div class="migration-route">
+                                <span class="route-point">中原</span>
+                                <i class="fas fa-arrow-right route-arrow"></i>
+                                <span class="route-point">四方扩散</span>
+                                <i class="fas fa-arrow-right route-arrow"></i>
+                                <span class="route-point">与当地民族融合</span>
+                            </div>
+                            <p style="color: var(--text-light); font-size: 0.9rem; margin-top: 0.5rem;">
+                                华夏族从黄河中游向四周扩散，与东夷、南蛮、西戎、北狄等民族接触融合。
+                            </p>
+                        </div>
+
+                        <div class="event-tags">
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>诸子百家</span>
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>百家争鸣</span>
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>民族融合</span>
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>雅言形成</span>
+                        </div>
+
+                        <div class="dialect-result">
+                            <h5><i class="fas fa-language me-1"></i>方言形成与演变</h5>
+                            <ul>
+                                <li><strong>北方方言区雏形：</strong>黄河流域的汉语逐渐形成北方方言的基础</li>
+                                <li><strong>楚语、越语萌芽：</strong>南方楚、越等国的语言开始形成独特特征</li>
+                                <li><strong>雅言成为通用语：</strong>以洛阳话为基础的雅言成为各诸侯国交流的媒介</li>
+                                <li><strong>方言差异初显：</strong>《荀子》中已记载"居楚而楚，居越而越"，说明方言差异已很明显</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 秦汉时期 -->
+                <div class="timeline-item right">
+                    <div class="timeline-content">
+                        <div class="timeline-date">公元前221年 - 公元220年</div>
+                        <h3 class="timeline-title">秦汉时期：统一与扩展</h3>
+                        
+                        <p class="timeline-text">
+                            <strong>历史背景：</strong>秦始皇统一六国，建立了中国历史上第一个中央集权的封建王朝。汉朝继承秦制，进一步巩固了统一局面，并向边疆地区扩展，促进了更大范围的人口流动和文化交流。
+                        </p>
+
+                        <div class="detail-section">
+                            <h6><i class="fas fa-scroll me-1"></i>重要政策与事件</h6>
+                            <table class="data-table">
+                                <tr>
+                                    <th>政策/事件</th>
+                                    <th>时间</th>
+                                    <th>对语言的影响</th>
+                                </tr>
+                                <tr>
+                                    <td>书同文</td>
+                                    <td>公元前221年</td>
+                                    <td>统一文字，消除六国文字差异</td>
+                                </tr>
+                                <tr>
+                                    <td>统一度量衡</td>
+                                    <td>公元前221年</td>
+                                    <td>促进经济交流，加速语言融合</td>
+                                </tr>
+                                <tr>
+                                    <td>南征百越</td>
+                                    <td>公元前214年</td>
+                                    <td>中原人口进入岭南，粤语萌芽</td>
+                                </tr>
+                                <tr>
+                                    <td>张骞通西域</td>
+                                    <td>公元前138年</td>
+                                    <td>开辟丝绸之路，促进东西交流</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="migration-box">
+                            <h6><i class="fas fa-route me-1"></i>主要迁移路线</h6>
+                            <div class="migration-route">
+                                <span class="route-point">关中</span>
+                                <i class="fas fa-arrow-right route-arrow"></i>
+                                <span class="route-point">岭南</span>
+                                <span style="margin: 0 0.5rem; color: var(--text-light);">（南征百越）</span>
+                            </div>
+                            <div class="migration-route">
+                                <span class="route-point">中原</span>
+                                <i class="fas fa-arrow-right route-arrow"></i>
+                                <span class="route-point">闽越</span>
+                                <span style="margin: 0 0.5rem; color: var(--text-light);">（闽语萌芽）</span>
+                            </div>
+                            <div class="migration-route">
+                                <span class="route-point">汉族</span>
+                                <i class="fas fa-arrow-right route-arrow"></i>
+                                <span class="route-point">西域</span>
+                                <span style="margin: 0 0.5rem; color: var(--text-light);">（丝绸之路）</span>
+                            </div>
+                        </div>
+
+                        <div class="event-tags">
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>书同文</span>
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>秦直道</span>
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>丝绸之路</span>
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>南征百越</span>
+                        </div>
+
+                        <div class="dialect-result">
+                            <h5><i class="fas fa-language me-1"></i>方言形成与演变</h5>
+                            <ul>
+                                <li><strong>北方官话基础奠定：</strong>以长安话为代表的关中话成为标准音的基础</li>
+                                <li><strong>粤语萌芽：</strong>秦军南征百越，50万大军留守岭南，带来中原汉语</li>
+                                <li><strong>闽语起源：</strong>汉朝设立闽越郡，中原移民进入福建</li>
+                                <li><strong>扬雄《方言》：</strong>西汉扬雄著《方言》，记录了当时各地方言词汇</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 魏晋南北朝 -->
+                <div class="timeline-item left">
+                    <div class="timeline-content">
+                        <div class="timeline-date">公元220年 - 589年</div>
+                        <h3 class="timeline-title">魏晋南北朝：五胡乱华与衣冠南渡</h3>
+                        
+                        <p class="timeline-text">
+                            <strong>历史背景：</strong>这是中国历史上最混乱的时期之一。西晋"八王之乱"后，北方少数民族（匈奴、鲜卑、羯、氐、羌）纷纷入侵中原，史称"五胡乱华"。中原汉族士族大规模南迁，史称"衣冠南渡"，这是中国历史上第一次大规模的人口南迁。
+                        </p>
+
+                        <div class="detail-section">
+                            <h6><i class="fas fa-users me-1"></i>人口迁移规模</h6>
+                            <p style="color: var(--text-light); line-height: 1.7;">
+                                据史料记载，永嘉之乱后，约有90万北方人口南迁，占当时北方人口的1/6。这些移民主要来自：
+                            </p>
+                            <ul style="color: var(--text-light);">
+                                <li><strong>河南：</strong>约30万人，主要迁往江苏、浙江</li>
+                                <li><strong>河北：</strong>约20万人，主要迁往山东、江苏</li>
+                                <li><strong>山西：</strong>约15万人，主要迁往河南、湖北</li>
+                                <li><strong>陕西：</strong>约25万人，主要迁往湖北、四川</li>
+                            </ul>
+                        </div>
+
+                        <div class="migration-box">
+                            <h6><i class="fas fa-route me-1"></i>主要迁移路线</h6>
+                            <div class="migration-route">
+                                <span class="route-point">洛阳</span>
+                                <i class="fas fa-arrow-right route-arrow"></i>
+                                <span class="route-point">建康（南京）</span>
+                                <span style="margin: 0 0.5rem; color: var(--text-light);">（东晋都城）</span>
+                            </div>
+                            <div class="migration-route">
+                                <span class="route-point">中原</span>
+                                <i class="fas fa-arrow-right route-arrow"></i>
+                                <span class="route-point">江南</span>
+                                <i class="fas fa-arrow-right route-arrow"></i>
+                                <span class="route-point">岭南</span>
+                            </div>
+                            <div class="migration-route">
+                                <span class="route-point">北方士族</span>
+                                <i class="fas fa-arrow-right route-arrow"></i>
+                                <span class="route-point">赣南、闽西</span>
+                                <span style="margin: 0 0.5rem; color: var(--text-light);">（客家先民）</span>
+                            </div>
+                        </div>
+
+                        <div class="event-tags">
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>永嘉之乱</span>
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>衣冠南渡</span>
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>五胡乱华</span>
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>客家起源</span>
+                        </div>
+
+                        <div class="dialect-result">
+                            <h5><i class="fas fa-language me-1"></i>方言形成与演变</h5>
+                            <ul>
+                                <li><strong>吴语形成：</strong>北方移民与当地吴人融合，在太湖流域形成独特的吴语</li>
+                                <li><strong>客家话起源：</strong>部分移民深入赣南、闽西、粤东山区，成为客家人的先民</li>
+                                <li><strong>湘语发展：</strong>湖南地区接受大量北方移民，湘语逐渐形成</li>
+                                <li><strong>北方官话变化：</strong>少数民族语言影响北方汉语，出现入声消失等变化</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 隋唐时期 -->
+                <div class="timeline-item right">
+                    <div class="timeline-content">
+                        <div class="timeline-date">公元589年 - 907年</div>
+                        <h3 class="timeline-title">隋唐时期：盛世繁华与文化交融</h3>
+                        
+                        <p class="timeline-text">
+                            <strong>历史背景：</strong>隋唐时期是中国历史上最繁荣的时期之一。国家统一，经济繁荣，对外交流频繁。长安成为国际大都市，吸引了来自世界各地的商人、使节和学者。这一时期，北方汉语逐渐成为标准语的基础，同时各地的方言也在不断发展。
+                        </p>
+
+                        <div class="detail-section">
+                            <h6><i class="fas fa-landmark me-1"></i>重要制度与影响</h6>
+                            <table class="data-table">
+                                <tr>
+                                    <th>制度/事件</th>
+                                    <th>对语言的影响</th>
+                                </tr>
+                                <tr>
+                                    <td>科举制度</td>
+                                    <td>统一考试标准，促进标准语传播</td>
+                                </tr>
+                                <tr>
+                                    <td>韵书编纂</td>
+                                    <td>《切韵》《广韵》确立音韵标准</td>
+                                </tr>
+                                <tr>
+                                    <td>唐诗繁荣</td>
+                                    <td>诗歌创作促进语言规范化</td>
+                                </tr>
+                                <tr>
+                                    <td>佛教传播</td>
+                                    <td>大量梵语词汇进入汉语</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="migration-box">
+                            <h6><i class="fas fa-route me-1"></i>主要迁移路线</h6>
+                            <div class="migration-route">
+                                <span class="route-point">各地</span>
+                                <i class="fas fa-arrow-right route-arrow"></i>
+                                <span class="route-point">长安</span>
+                                <span style="margin: 0 0.5rem; color: var(--text-light);">（科举、经商）</span>
+                            </div>
+                            <div class="migration-route">
+                                <span class="route-point">中原</span>
+                                <i class="fas fa-arrow-right route-arrow"></i>
+                                <span class="route-point">福建</span>
+                                <span style="margin: 0 0.5rem; color: var(--text-light);">（闽南语形成）</span>
+                            </div>
+                            <div class="migration-route">
+                                <span class="route-point">汉族</span>
+                                <i class="fas fa-arrow-right route-arrow"></i>
+                                <span class="route-point">边疆</span>
+                                <span style="margin: 0 0.5rem; color: var(--text-light);">（屯田戍边）</span>
+                            </div>
+                        </div>
+
+                        <div class="event-tags">
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>科举制度</span>
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>诗歌繁荣</span>
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>佛教传播</span>
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>韵书编纂</span>
+                        </div>
+
+                        <div class="dialect-result">
+                            <h5><i class="fas fa-language me-1"></i>方言形成与演变</h5>
+                            <ul>
+                                <li><strong>唐韵成为标准：</strong>《切韵》《广韵》确立音韵标准，影响后世</li>
+                                <li><strong>闽南语形成：</strong>陈元光开漳，中原移民进入闽南，闽南语完全形成</li>
+                                <li><strong>方言特征固化：</strong>各方言区的语音特征逐渐稳定</li>
+                                <li><strong>文人方言意识：</strong>韩愈等文人开始关注方言差异</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 宋元时期 -->
+                <div class="timeline-item left">
+                    <div class="timeline-content">
+                        <div class="timeline-date">公元960年 - 1368年</div>
+                        <h3 class="timeline-title">宋元时期：战乱与民族大融合</h3>
+                        
+                        <p class="timeline-text">
+                            <strong>历史背景：</strong>北宋靖康之变后，宋室南迁临安（杭州），史称"南宋"。这是中国历史上第二次大规模的人口南迁。元朝统一后，蒙古族、色目人进入中原，汉族与其他民族的融合进一步加强。
+                        </p>
+
+                        <div class="detail-section">
+                            <h6><i class="fas fa-exclamation-circle me-1"></i>重大历史事件</h6>
+                            <table class="data-table">
+                                <tr>
+                                    <th>事件</th>
+                                    <th>时间</th>
+                                    <th>人口迁移</th>
+                                    <th>语言影响</th>
+                                </tr>
+                                <tr>
+                                    <td>靖康之变</td>
+                                    <td>1127年</td>
+                                    <td>约500万人南迁</td>
+                                    <td>吴语、粤语发展</td>
+                                </tr>
+                                <tr>
+                                    <td>元朝统一</td>
+                                    <td>1279年</td>
+                                    <td>蒙古族、色目人入中原</td>
+                                    <td>北方汉语受影响</td>
+                                </tr>
+                                <tr>
+                                    <td>崖山之战</td>
+                                    <td>1279年</td>
+                                    <td>南宋遗民南逃</td>
+                                    <td>粤语、闽南语发展</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="migration-box">
+                            <h6><i class="fas fa-route me-1"></i>主要迁移路线</h6>
+                            <div class="migration-route">
+                                <span class="route-point">开封</span>
+                                <i class="fas fa-arrow-right route-arrow"></i>
+                                <span class="route-point">临安（杭州）</span>
+                                <span style="margin: 0 0.5rem; color: var(--text-light);">（宋室南迁）</span>
+                            </div>
+                            <div class="migration-route">
+                                <span class="route-point">中原</span>
+                                <i class="fas fa-arrow-right route-arrow"></i>
+                                <span class="route-point">江南</span>
+                                <i class="fas fa-arrow-right route-arrow"></i>
+                                <span class="route-point">岭南</span>
+                            </div>
+                            <div class="migration-route">
+                                <span class="route-point">福建</span>
+                                <i class="fas fa-arrow-right route-arrow"></i>
+                                <span class="route-point">台湾</span>
+                                <span style="margin: 0 0.5rem; color: var(--text-light);">（闽南人渡台）</span>
+                            </div>
+                        </div>
+
+                        <div class="event-tags">
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>靖康之变</span>
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>崖山之战</span>
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>元朝统一</span>
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>民族融合</span>
+                        </div>
+
+                        <div class="dialect-result">
+                            <h5><i class="fas fa-language me-1"></i>方言形成与演变</h5>
+                            <ul>
+                                <li><strong>粤语成熟：</strong>大量中原移民进入广东，粤语完全形成</li>
+                                <li><strong>吴语稳定：</strong>杭州话受北方话影响，形成独特的"官话岛"</li>
+                                <li><strong>赣语形成：</strong>江西地区方言特征稳定，赣语成熟</li>
+                                <li><strong>北方官话变化：</strong>蒙古语影响北方汉语，出现新的语音变化</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 明清时期 -->
+                <div class="timeline-item right">
+                    <div class="timeline-content">
+                        <div class="timeline-date">公元1368年 - 1911年</div>
+                        <h3 class="timeline-title">明清时期：大规模移民与客家形成</h3>
+                        
+                        <p class="timeline-text">
+                            <strong>历史背景：</strong>明清时期是中国人口大爆炸的时期。明初推行移民实边政策，清初的"湖广填四川"、闽粤客家人向台湾和南洋的迁移、以及"闯关东"、"走西口"等大规模人口流动，深刻影响了各地方言的分布格局。
+                        </p>
+
+                        <div class="detail-section">
+                            <h6><i class="fas fa-users me-1"></i>主要移民运动</h6>
+                            <table class="data-table">
+                                <tr>
+                                    <th>移民运动</th>
+                                    <th>时间</th>
+                                    <th>规模</th>
+                                    <th>语言影响</th>
+                                </tr>
+                                <tr>
+                                    <td>湖广填四川</td>
+                                    <td>清初</td>
+                                    <td>约600万人</td>
+                                    <td>西南官话形成</td>
+                                </tr>
+                                <tr>
+                                    <td>闯关东</td>
+                                    <td>1860-1940</td>
+                                    <td>约3000万人</td>
+                                    <td>东北官话形成</td>
+                                </tr>
+                                <tr>
+                                    <td>走西口</td>
+                                    <td>明清</td>
+                                    <td>约数百万人</td>
+                                    <td>晋语西扩</td>
+                                </tr>
+                                <tr>
+                                    <td>下南洋</td>
+                                    <td>明清-民国</td>
+                                    <td>约千万人</td>
+                                    <td>东南亚华语形成</td>
+                                </tr>
+                                <tr>
+                                    <td>客家第四次迁移</td>
+                                    <td>清中叶</td>
+                                    <td>约数百万人</td>
+                                    <td>客家人迁台湾、南洋</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="migration-box">
+                            <h6><i class="fas fa-route me-1"></i>主要迁移路线</h6>
+                            <div class="migration-route">
+                                <span class="route-point">湖广</span>
+                                <i class="fas fa-arrow-right route-arrow"></i>
+                                <span class="route-point">四川</span>
+                                <span style="margin: 0 0.5rem; color: var(--text-light);">（湖广填四川）</span>
+                            </div>
+                            <div class="migration-route">
+                                <span class="route-point">山东、河北</span>
+                                <i class="fas fa-arrow-right route-arrow"></i>
+                                <span class="route-point">东北</span>
+                                <span style="margin: 0 0.5rem; color: var(--text-light);">（闯关东）</span>
+                            </div>
+                            <div class="migration-route">
+                                <span class="route-point">山西</span>
+                                <i class="fas fa-arrow-right route-arrow"></i>
+                                <span class="route-point">内蒙古</span>
+                                <span style="margin: 0 0.5rem; color: var(--text-light);">（走西口）</span>
+                            </div>
+                            <div class="migration-route">
+                                <span class="route-point">福建、广东</span>
+                                <i class="fas fa-arrow-right route-arrow"></i>
+                                <span class="route-point">台湾、南洋</span>
+                                <span style="margin: 0 0.5rem; color: var(--text-light);">（下南洋）</span>
+                            </div>
+                        </div>
+
+                        <div class="event-tags">
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>湖广填四川</span>
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>闯关东</span>
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>走西口</span>
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>下南洋</span>
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>客家迁移</span>
+                        </div>
+
+                        <div class="dialect-result">
+                            <h5><i class="fas fa-language me-1"></i>方言形成与演变</h5>
+                            <ul>
+                                <li><strong>西南官话形成：</strong>四川话从独立的蜀语转变为西南官话</li>
+                                <li><strong>东北官话形成：</strong>山东、河北移民带来北方官话，形成东北方言</li>
+                                <li><strong>客家话定型：</strong>客家人第五次迁移完成，客家话分布格局定型</li>
+                                <li><strong>台湾闽南语：</strong>福建移民带入台湾，形成台湾闽南语</li>
+                                <li><strong>东南亚华语：</strong>华人移民创造独特的东南亚华语变体</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 近现代 -->
+                <div class="timeline-item left">
+                    <div class="timeline-content">
+                        <div class="timeline-date">1911年 - 至今</div>
+                        <h3 class="timeline-title">近现代：普通话推广与方言演变</h3>
+                        
+                        <p class="timeline-text">
+                            <strong>历史背景：</strong>民国时期开始推广国语，新中国成立后大力推广普通话。随着教育普及、城镇化加速和人口流动，方言使用人口逐渐减少，但同时也出现了方言融合和新词汇的产生。近年来，方言保护意识逐渐增强。
+                        </p>
+
+                        <div class="detail-section">
+                            <h6><i class="fas fa-university me-1"></i>重要政策与事件</h6>
+                            <table class="data-table">
+                                <tr>
+                                    <th>政策/事件</th>
+                                    <th>时间</th>
+                                    <th>对语言的影响</th>
+                                </tr>
+                                <tr>
+                                    <td>国语运动</td>
+                                    <td>1913年</td>
+                                    <td>确立"老国音"标准</td>
+                                </tr>
+                                <tr>
+                                    <td>普通话推广</td>
+                                    <td>1955年</td>
+                                    <td>以北京语音为标准音</td>
+                                </tr>
+                                <tr>
+                                    <td>汉语拼音方案</td>
+                                    <td>1958年</td>
+                                    <td>统一注音方式</td>
+                                </tr>
+                                <tr>
+                                    <td>改革开放</td>
+                                    <td>1978年</td>
+                                    <td>人口大规模流动，方言接触加剧</td>
+                                </tr>
+                                <tr>
+                                    <td>方言保护倡议</td>
+                                    <td>2000年代</td>
+                                    <td>方言保护意识增强</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="migration-box">
+                            <h6><i class="fas fa-route me-1"></i>主要迁移趋势</h6>
+                            <div class="migration-route">
+                                <span class="route-point">农村</span>
+                                <i class="fas fa-arrow-right route-arrow"></i>
+                                <span class="route-point">城市</span>
+                                <span style="margin: 0 0.5rem; color: var(--text-light);">（城镇化）</span>
+                            </div>
+                            <div class="migration-route">
+                                <span class="route-point">中西部</span>
+                                <i class="fas fa-arrow-right route-arrow"></i>
+                                <span class="route-point">东部沿海</span>
+                                <span style="margin: 0 0.5rem; color: var(--text-light);">（务工）</span>
+                            </div>
+                            <div class="migration-route">
+                                <span class="route-point">全国</span>
+                                <i class="fas fa-arrow-right route-arrow"></i>
+                                <span class="route-point">北上广深</span>
+                                <span style="margin: 0 0.5rem; color: var(--text-light);">（大城市聚集）</span>
+                            </div>
+                        </div>
+
+                        <div class="event-tags">
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>普通话推广</span>
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>城镇化</span>
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>方言融合</span>
+                            <span class="event-tag"><i class="fas fa-tag me-1"></i>方言保护</span>
+                        </div>
+
+                        <div class="dialect-result">
+                            <h5><i class="fas fa-language me-1"></i>方言现状与挑战</h5>
+                            <ul>
+                                <li><strong>方言能力下降：</strong>年轻人方言使用能力普遍下降</li>
+                                <li><strong>方言词汇融入普通话：</strong>如"忽悠"、"山寨"等方言词汇进入普通话</li>
+                                <li><strong>新方言现象：</strong>大城市出现"新方言"，如上海普通话</li>
+                                <li><strong>濒危方言：</strong>部分方言如满语、畲语等面临濒危</li>
+                                <li><strong>保护意识增强：</strong>方言文化节目、方言APP等兴起</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 经典案例分析 -->
+        <section>
+            <h2 class="text-center mb-5" style="color: var(--primary-green);">
+                <i class="fas fa-lightbulb me-2"></i>经典案例分析
+            </h2>
+
+            <!-- 客家话案例 -->
+            <div class="case-card">
+                <div class="case-header">
+                    <h4 class="mb-0"><i class="fas fa-user-friends me-2"></i>案例一：衣冠南渡与客家话的形成</h4>
+                </div>
+                <div class="case-body">
+                    <div class="case-section">
+                        <h5><i class="fas fa-history me-1"></i>历史背景</h5>
+                        <p style="color: var(--text-light); line-height: 1.8;">
+                            西晋永嘉之乱（公元311年）后，匈奴攻陷洛阳，中原大乱。大量中原士族和平民被迫南迁，史称"衣冠南渡"。这些移民最初定居在长江流域，后因战乱和人口压力，逐渐向更南的山区迁移，最终在赣南、闽西、粤东交界的山区定居下来。
+                        </p>
+                    </div>
+
+                    <div class="case-section">
+                        <h5><i class="fas fa-route me-1"></i>迁移过程（客家五次大迁移）</h5>
+                        <div class="highlight-box">
+                            <table class="data-table" style="margin: 0;">
+                                <tr>
+                                    <th>次数</th>
+                                    <th>时间</th>
+                                    <th>原因</th>
+                                    <th>路线</th>
+                                </tr>
+                                <tr>
+                                    <td>第一次</td>
+                                    <td>西晋永嘉之乱</td>
+                                    <td>五胡乱华</td>
+                                    <td>中原→江淮→赣南</td>
+                                </tr>
+                                <tr>
+                                    <td>第二次</td>
+                                    <td>唐末黄巢起义</td>
+                                    <td>战乱</td>
+                                    <td>赣南→闽西</td>
+                                </tr>
+                                <tr>
+                                    <td>第三次</td>
+                                    <td>宋元之际</td>
+                                    <td>金兵南下</td>
+                                    <td>闽西→粤东</td>
+                                </tr>
+                                <tr>
+                                    <td>第四次</td>
+                                    <td>明末清初</td>
+                                    <td>满清入关</td>
+                                    <td>粤东→四川、台湾</td>
+                                </tr>
+                                <tr>
+                                    <td>第五次</td>
+                                    <td>清末</td>
+                                    <td>太平天国</td>
+                                    <td>→南洋、海外</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="case-section">
+                        <h5><i class="fas fa-language me-1"></i>语言特征</h5>
+                        <p style="color: var(--text-light); line-height: 1.8;">
+                            客家话保留了大量的古汉语特征，被语言学家称为"古汉语的活化石"：
+                        </p>
+                        <div class="vocab-list">
+                            <div class="vocab-item">
+                                <div class="vocab-word">食</div>
+                                <div class="vocab-meaning">吃（古汉语保留）</div>
+                            </div>
+                            <div class="vocab-item">
+                                <div class="vocab-word">行</div>
+                                <div class="vocab-meaning">走（古汉语保留）</div>
+                            </div>
+                            <div class="vocab-item">
+                                <div class="vocab-word">乌</div>
+                                <div class="vocab-meaning">黑（古汉语保留）</div>
+                            </div>
+                            <div class="vocab-item">
+                                <div class="vocab-word">禾</div>
+                                <div class="vocab-meaning">稻子（古汉语保留）</div>
+                            </div>
+                        </div>
+                        <div class="highlight-box">
+                            <strong>语音特征：</strong><br>
+                            • 保留了中古汉语的入声韵尾 -p, -t, -k<br>
+                            • 保留了"古无轻唇音"的特点（如"飞"读作"悲"）<br>
+                            • 声调丰富，一般有6-7个声调
+                        </div>
+                    </div>
+
+                    <div class="case-section">
+                        <h5><i class="fas fa-map-marker-alt me-1"></i>分布现状</h5>
+                        <p style="color: var(--text-light); line-height: 1.8;">
+                            客家话主要分布在广东、福建、江西、台湾等省份，以及东南亚各国。全球客家人口约4500万，是中国七大方言之一。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 湖广填四川案例 -->
+            <div class="case-card">
+                <div class="case-header" style="background: linear-gradient(135deg, var(--secondary-green) 0%, var(--light-green) 100%);">
+                    <h4 class="mb-0"><i class="fas fa-ship me-2"></i>案例二：湖广填四川与西南官话</h4>
+                </div>
+                <div class="case-body">
+                    <div class="case-section">
+                        <h5><i class="fas fa-history me-1"></i>历史背景</h5>
+                        <p style="color: var(--text-light); line-height: 1.8;">
+                            明末清初，四川经历了张献忠屠川、清军入川等战乱，人口锐减。据记载，清初四川人口仅剩约50万人，比明代减少了90%以上。清政府推行"移民实川"政策，鼓励湖广（湖南、湖北）、广东、福建等省人口迁入四川。
+                        </p>
+                    </div>
+
+                    <div class="case-section">
+                        <h5><i class="fas fa-users me-1"></i>移民来源与规模</h5>
+                        <div class="highlight-box">
+                            <table class="data-table" style="margin: 0;">
+                                <tr>
+                                    <th>来源地</th>
+                                    <th>占比</th>
+                                    <th>带来的方言影响</th>
+                                </tr>
+                                <tr>
+                                    <td>湖广（湖南、湖北）</td>
+                                    <td>约40%</td>
+                                    <td>西南官话基础</td>
+                                </tr>
+                                <tr>
+                                    <td>广东（含客家）</td>
+                                    <td>约25%</td>
+                                    <td>粤语、客家话影响</td>
+                                </tr>
+                                <tr>
+                                    <td>福建</td>
+                                    <td>约15%</td>
+                                    <td>闽南话影响</td>
+                                </tr>
+                                <tr>
+                                    <td>江西</td>
+                                    <td>约10%</td>
+                                    <td>赣语影响</td>
+                                </tr>
+                                <tr>
+                                    <td>其他</td>
+                                    <td>约10%</td>
+                                    <td>多元影响</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="case-section">
+                        <h5><i class="fas fa-language me-1"></i>方言融合过程</h5>
+                        <p style="color: var(--text-light); line-height: 1.8;">
+                            由于移民来源复杂，为了交流，人们逐渐采用以湖广话为基础的通用语。这种通用语吸收了各方言的特点，形成了独特的四川话：
+                        </p>
+                        <div class="vocab-list">
+                            <div class="vocab-item">
+                                <div class="vocab-word">摆龙门阵</div>
+                                <div class="vocab-meaning">聊天</div>
+                            </div>
+                            <div class="vocab-item">
+                                <div class="vocab-word">雄起</div>
+                                <div class="vocab-meaning">加油、振作</div>
+                            </div>
+                            <div class="vocab-item">
+                                <div class="vocab-word">巴适</div>
+                                <div class="vocab-meaning">舒服、很好</div>
+                            </div>
+                            <div class="vocab-item">
+                                <div class="vocab-word">耍朋友</div>
+                                <div class="vocab-meaning">谈恋爱</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="case-section">
+                        <h5><i class="fas fa-chart-line me-1"></i>影响与意义</h5>
+                        <div class="highlight-box">
+                            <strong>语言影响：</strong>四川话从独立的"蜀语"转变为西南官话的一部分，与云南、贵州、湖北方言高度互通。<br><br>
+                            <strong>文化影响：</strong>形成了独特的巴蜀文化，川剧、川菜等文化符号走向全国。<br><br>
+                            <strong>人口影响：</strong>四川人口从清初的50万恢复到现在的8000多万，成为中国人口大省。
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 闯关东案例 -->
+            <div class="case-card">
+                <div class="case-header" style="background: linear-gradient(135deg, var(--light-green) 0%, var(--mint-green) 100%); color: var(--primary-green);">
+                    <h4 class="mb-0"><i class="fas fa-tree me-2"></i>案例三：闯关东与东北方言</h4>
+                </div>
+                <div class="case-body">
+                    <div class="case-section">
+                        <h5><i class="fas fa-history me-1"></i>历史背景</h5>
+                        <p style="color: var(--text-light); line-height: 1.8;">
+                            清朝初期，东北被视为"龙兴之地"，实行封禁政策。1860年后，清政府开放东北，允许内地农民前往开垦。山东、河北等地人口过剩，加上自然灾害频发，大量农民"闯关东"谋生。
+                        </p>
+                    </div>
+
+                    <div class="case-section">
+                        <h5><i class="fas fa-users me-1"></i>移民规模与来源</h5>
+                        <div class="highlight-box">
+                            <p style="margin: 0;">
+                                <strong>时间跨度：</strong>1860年 - 1940年<br>
+                                <strong>移民总数：</strong>约3000万人<br>
+                                <strong>主要来源：</strong><br>
+                                • 山东（约70%）：带来山东方言<br>
+                                • 河北（约20%）：带来河北方言<br>
+                                • 其他（约10%）：河南、山西等
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="case-section">
+                        <h5><i class="fas fa-language me-1"></i>东北方言特色</h5>
+                        <p style="color: var(--text-light); line-height: 1.8;">
+                            东北方言以山东方言为基础，融合了满语、蒙古语等少数民族语言词汇，形成了独特的语言风格：
+                        </p>
+                        <div class="vocab-list">
+                            <div class="vocab-item">
+                                <div class="vocab-word">唠嗑</div>
+                                <div class="vocab-meaning">聊天</div>
+                            </div>
+                            <div class="vocab-item">
+                                <div class="vocab-word">嘎嘎</div>
+                                <div class="vocab-meaning">非常（嘎嘎新）</div>
+                            </div>
+                            <div class="vocab-item">
+                                <div class="vocab-word">整</div>
+                                <div class="vocab-meaning">做/搞（万能动词）</div>
+                            </div>
+                            <div class="vocab-item">
+                                <div class="vocab-word">埋汰</div>
+                                <div class="vocab-meaning">脏（满语借词）</div>
+                            </div>
+                        </div>
+                        <div class="highlight-box">
+                            <strong>满语借词：</strong>哈尔滨（满语"晒网场"）、齐齐哈尔（满语"天然牧场"）、埋汰（脏）、咋呼（大声喊叫）等。
+                        </div>
+                    </div>
+
+                    <div class="case-section">
+                        <h5><i class="fas fa-microphone me-1"></i>文化影响</h5>
+                        <p style="color: var(--text-light); line-height: 1.8;">
+                            东北方言因其幽默、直爽的特点，成为中国最具辨识度的方言之一。东北小品、二人转等艺术形式在全国广受欢迎，东北方言词汇如"忽悠"、"给力"等进入普通话。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 下南洋案例 -->
+            <div class="case-card">
+                <div class="case-header" style="background: linear-gradient(135deg, var(--mint-green) 0%, var(--pale-green) 100%); color: var(--primary-green);">
+                    <h4 class="mb-0"><i class="fas fa-globe me-2"></i>案例四：下南洋与东南亚华语</h4>
+                </div>
+                <div class="case-body">
+                    <div class="case-section">
+                        <h5><i class="fas fa-history me-1"></i>历史背景</h5>
+                        <p style="color: var(--text-light); line-height: 1.8;">
+                            明清至民国时期，福建、广东沿海地区人口过剩，土地贫瘠，大量华人漂洋过海到东南亚谋生，史称"下南洋"。这些华人带去了闽南语、粤语、客家话等方言，与当地语言接触融合，形成了独特的东南亚华语。
+                        </p>
+                    </div>
+
+                    <div class="case-section">
+                        <h5><i class="fas fa-users me-1"></i>移民分布</h5>
+                        <div class="highlight-box">
+                            <table class="data-table" style="margin: 0;">
+                                <tr>
+                                    <th>国家/地区</th>
+                                    <th>华人人口</th>
+                                    <th>主要方言</th>
+                                </tr>
+                                <tr>
+                                    <td>新加坡</td>
+                                    <td>约280万</td>
+                                    <td>闽南语、普通话</td>
+                                </tr>
+                                <tr>
+                                    <td>马来西亚</td>
+                                    <td>约660万</td>
+                                    <td>闽南语、粤语、客家话</td>
+                                </tr>
+                                <tr>
+                                    <td>印度尼西亚</td>
+                                    <td>约1000万</td>
+                                    <td>闽南语、客家话</td>
+                                </tr>
+                                <tr>
+                                    <td>泰国</td>
+                                    <td>约900万</td>
+                                    <td>潮州话、客家话</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="case-section">
+                        <h5><i class="fas fa-language me-1"></i>语言融合特点</h5>
+                        <p style="color: var(--text-light); line-height: 1.8;">
+                            东南亚华语融合了汉语方言、英语、马来语等多种语言元素：
+                        </p>
+                        <div class="vocab-list">
+                            <div class="vocab-item">
+                                <div class="vocab-word">巴刹</div>
+                                <div class="vocab-meaning">市场（马来语借词）</div>
+                            </div>
+                            <div class="vocab-item">
+                                <div class="vocab-word">固打</div>
+                                <div class="vocab-meaning">配额（英语quota）</div>
+                            </div>
+                            <div class="vocab-item">
+                                <div class="vocab-word">五脚基</div>
+                                <div class="vocab-meaning">骑楼（闽南语）</div>
+                            </div>
+                            <div class="vocab-item">
+                                <div class="vocab-word">按揭</div>
+                                <div class="vocab-meaning">贷款（粤语）</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 影响方言形成的关键因素 -->
+        <section class="section-card">
+            <h3 class="section-title"><i class="fas fa-star me-2"></i>影响方言形成的关键因素</h3>
+            <div class="factor-grid">
+                <div class="factor-card">
+                    <div class="factor-icon"><i class="fas fa-mountain"></i></div>
+                    <h5>地理屏障</h5>
+                    <p>山脉、河流、海洋等自然屏障阻隔了人们的交流，促使不同地区形成独特的方言。如秦岭-淮河一线是南北方言的重要分界线。</p>
+                </div>
+                <div class="factor-card">
+                    <div class="factor-icon"><i class="fas fa-shield-alt"></i></div>
+                    <h5>行政划分</h5>
+                    <p>历史上的行政区划往往以语言区域为基础，同一行政区内部交流频繁，促成了方言的内部一致性。</p>
+                </div>
+                <div class="factor-card">
+                    <div class="factor-icon"><i class="fas fa-users"></i></div>
+                    <h5>人口迁移</h5>
+                    <p>大规模的人口迁移是方言形成和变化的主要动力。移民带来的母语与当地语言接触融合，产生新的方言。</p>
+                </div>
+                <div class="factor-card">
+                    <div class="factor-icon"><i class="fas fa-book"></i></div>
+                    <h5>文化教育</h5>
+                    <p>科举制度、私塾教育等文化传播渠道促使标准语的形成，同时也加速了方言的分化。</p>
+                </div>
+                <div class="factor-card">
+                    <div class="factor-icon"><i class="fas fa-industry"></i></div>
+                    <h5>经济发展</h5>
+                    <p>经济中心的变化引导人口流动方向，经济发达地区往往成为方言扩散的中心。</p>
+                </div>
+                <div class="factor-card">
+                    <div class="factor-icon"><i class="fas fa-exchange-alt"></i></div>
+                    <h5>贸易交流</h5>
+                    <p>商业贸易促使不同地区人们频繁接触，语言在交流中相互影响、逐渐变化。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 总结与展望 -->
+        <section class="section-card">
+            <h3 class="section-title"><i class="fas fa-lightbulb me-2"></i>总结与展望</h3>
+            <p style="color: #475569; line-height: 1.9; text-align: justify; font-size: 1.05rem;">
+                从先秦到现代，中国方言的形成与演变始终与人口迁移紧密相连。每一次大规模的人口流动，都在方言地图上留下了深刻的印记。今天，随着城镇化的加速和普通话的推广，方言面临着前所未有的挑战。然而，方言作为地方文化的重要载体，承载着丰富的历史记忆和文化基因，值得我们珍视和保护。
+            </p>
+            <div class="highlight-box" style="margin-top: 1.5rem;">
+                <strong>思考问题：</strong><br>
+                1. 如何在推广普通话的同时保护方言多样性？<br>
+                2. 现代人口流动会对未来方言格局产生怎样的影响？<br>
+                3. 方言保护与传承的有效途径有哪些？
+            </div>
+        </section>
+    </main>
+{% endblock %}

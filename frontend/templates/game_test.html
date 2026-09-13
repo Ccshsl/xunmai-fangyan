@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>方言词汇游戏测试</title>
+    <style>
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background: linear-gradient(135deg, #1e40af 0%, #06b6d4 40%, #059669 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .game-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        }
+        .action-btn {
+            background: linear-gradient(135deg, #2563eb, #06b6d4);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+        }
+        #game-screen {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- 开始界面 -->
+        <div id="start-screen">
+            <h2>方言词汇游戏</h2>
+            <p>点击下方按钮开始游戏</p>
+            <button class="action-btn" onclick="startGame()">
+                <span>开始游戏</span>
+            </button>
+        </div>
+
+        <!-- 游戏界面 -->
+        <div id="game-screen">
+            <h2>游戏进行中</h2>
+            <p>这是游戏界面</p>
+            <button class="action-btn" onclick="goBack()">返回</button>
+        </div>
+    </div>
+
+    <script>
+        function startGame() {
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+        }
+        function goBack() {
+            document.getElementById('start-screen').style.display = 'block';
+            document.getElementById('game-screen').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

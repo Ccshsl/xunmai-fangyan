@@ -1,0 +1,706 @@
+{% extends "base.html" %}
+{% block title %}寻脉 - 方言地理分布与语言演变可视化教学平台{% endblock %}
+{% block head_styles %}
+    <style>
+        :root {
+            --primary-blue: #1e40af;
+            --secondary-blue: #3b82f6;
+            --cyan-glow: #06b6d4;
+            --teal-green: #14b8a6;
+            --mint-green: #10b981;
+            --primary-green: #059669;
+            --light-blue: #e0f2fe;
+            --light-green: #d1fae5;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --bg-white: rgba(255,255,255,0.85);
+            --border-color: rgba(255,255,255,0.3);
+            --shadow-glow: rgba(6, 182, 212, 0.3);
+        }
+
+        body {
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 云朵装饰背景 */
+        .clouds-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.6;
+        }
+
+        .cloud {
+            position: absolute;
+            background: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, rgba(241,245,249,0.4) 100%);
+            border-radius: 50%;
+            filter: blur(20px);
+            animation: float-cloud 20s ease-in-out infinite;
+        }
+
+        @keyframes float-cloud {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(30px) translateY(-10px); }
+        }
+
+        /* 浮动光点 */
+        .float-light {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: rgba(59, 130, 246, 0.3);
+            border-radius: 50%;
+            animation: float 8s ease-in-out infinite;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+            50% { transform: translateY(-25px) translateX(15px); opacity: 0.7; }
+        }
+
+        /* 波纹装饰 */
+        .ripple {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            animation: ripple 4s ease-out infinite;
+        }
+
+        @keyframes ripple {
+            0% { transform: scale(0.5); opacity: 0.5; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        /* 动态渐变背景动画 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                135deg,
+                var(--gradient-start) 0%,
+                var(--gradient-mid) 30%,
+                var(--teal-green) 60%,
+                var(--gradient-end) 100%
+            );
+            background-size: 200% 200%;
+            animation: gradientShift 15s ease infinite;
+            pointer-events: none;
+            z-index: -2;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 动态光效层 */
+        .light-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        /* 发光圆环 */
+        .glow-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid rgba(6, 182, 212, 0.15);
+            animation: ringRotate 20s linear infinite;
+        }
+
+        .glow-ring:nth-child(1) {
+            width: 600px;
+            height: 600px;
+            top: -200px;
+            right: -100px;
+            border-color: rgba(30, 64, 175, 0.2);
+            animation-duration: 25s;
+        }
+
+        .glow-ring:nth-child(2) {
+            width: 400px;
+            height: 400px;
+            bottom: -100px;
+            left: -100px;
+            border-color: rgba(6, 182, 212, 0.25);
+            animation-duration: 18s;
+            animation-direction: reverse;
+        }
+
+        .glow-ring:nth-child(3) {
+            width: 300px;
+            height: 300px;
+            top: 40%;
+            left: 20%;
+            border-color: rgba(16, 185, 129, 0.2);
+            animation-duration: 15s;
+        }
+
+        @keyframes ringRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* 浮动光点 */
+        .float-light {
+            position: absolute;
+            border-radius: 50%;
+            animation: floatMove 10s ease-in-out infinite;
+        }
+
+        .float-light.blue {
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.6) 0%, transparent 70%);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5), 0 0 40px rgba(59, 130, 246, 0.3);
+        }
+
+        .float-light.cyan {
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.6) 0%, transparent 70%);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5), 0 0 40px rgba(6, 182, 212, 0.3);
+        }
+
+        .float-light.green {
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.6) 0%, transparent 70%);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.5), 0 0 40px rgba(16, 185, 129, 0.3);
+        }
+
+        @keyframes floatMove {
+            0%, 100% {
+                transform: translateY(0) translateX(0) scale(1);
+                opacity: 0.4;
+            }
+            25% {
+                transform: translateY(-30px) translateX(20px) scale(1.2);
+                opacity: 0.8;
+            }
+            50% {
+                transform: translateY(-50px) translateX(-10px) scale(1);
+                opacity: 0.6;
+            }
+            75% {
+                transform: translateY(-20px) translateX(-20px) scale(0.9);
+                opacity: 0.7;
+            }
+        }
+
+        /* 闪烁星点 */
+        .star {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s ease-in-out infinite;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* 导航栏 */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), 0 0 60px rgba(6, 182, 212, 0.15);
+        }
+
+        .navbar-brand {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 2.2rem !important;
+            color: #0ea5e9 !important;
+            letter-spacing: 0.1em;
+            font-weight: 500;
+        }
+        
+        .navbar-brand i {
+            font-size: 1.5rem;
+            color: var(--gradient-mid);
+        }
+
+        .nav-link {
+            color: var(--text-secondary) !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            color: var(--gradient-mid) !important;
+            transform: translateY(-2px);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--gradient-mid), var(--teal-green));
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 80%;
+        }
+
+        /* Hero区域 */
+        .hero-section {
+            padding: 120px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 艺术字标题 */
+        .title-xunmai {
+            font-family: 'ZCOOL KuaiLe', cursive;
+            font-size: 9rem;
+            color: #ffffff;
+            letter-spacing: 0.3em;
+            position: relative;
+            display: inline-block;
+            animation: pulse-glow 4s ease-in-out infinite;
+            text-shadow: 
+                0 0 10px rgba(6, 182, 212, 0.9),
+                0 0 20px rgba(6, 182, 212, 0.8),
+                0 0 40px rgba(6, 182, 212, 0.6),
+                0 0 60px rgba(6, 182, 212, 0.4),
+                1px 1px 2px rgba(0, 0, 0, 0.4);
+            -webkit-text-stroke: 1px rgba(6, 182, 212, 0.8);
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% {
+                transform: scale(1);
+                filter: drop-shadow(0 0 30px rgba(30, 64, 175, 0.4));
+            }
+            50% {
+                transform: scale(1.01);
+                filter: drop-shadow(0 0 50px rgba(6, 182, 212, 0.5));
+            }
+        }
+
+        .title-xunmai::before {
+            content: '寻 脉';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, 
+                rgba(30, 64, 175, 0.3) 0%, 
+                rgba(6, 182, 212, 0.2) 50%,
+                rgba(5, 150, 105, 0.3) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            z-index: -1;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 0.5; }
+        }
+
+        /* 副标题 */
+        .subtitle {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            letter-spacing: 0.2em;
+            margin-top: 25px;
+            font-weight: 500;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 描述文字 */
+        .lead-text {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 2.2;
+            margin-top: 25px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 按钮样式 */
+        .btn-enter {
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            color: var(--gradient-start);
+            padding: 14px 40px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), 0 0 30px rgba(255, 255, 255, 0.3);
+            font-weight: 600;
+            letter-spacing: 0.1em;
+        }
+
+        .btn-enter:hover {
+            background: white;
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25), 0 0 40px rgba(6, 182, 212, 0.3);
+            color: var(--gradient-mid);
+        }
+
+        .btn-outline-enter {
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            color: white;
+            padding: 14px 40px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-outline-enter:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: white;
+            color: white;
+            box-shadow: 0 4px 20px rgba(6, 182, 212, 0.3);
+        }
+
+        /* 统计卡片 */
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+            padding: 30px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+            border-color: var(--gradient-mid);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            letter-spacing: 0.1em;
+        }
+
+        /* 功能卡片 */
+        .card-hover {
+            transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            border-color: var(--gradient-mid);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* 章节标题 */
+        .section-title {
+            position: relative;
+            padding-bottom: 20px;
+            color: white;
+            font-weight: 600;
+            font-size: 2.2rem;
+            letter-spacing: 0.15em;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gradient-start), var(--gradient-mid), var(--teal-green));
+            border-radius: 2px;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.5);
+        }
+
+        /* 功能区域 */
+        .features-section {
+            position: relative;
+        }
+
+        /* 关于区域 */
+        .about-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .check-item {
+            color: var(--cyan-glow);
+        }
+
+        /* 页脚 */
+        footer {
+            background: rgba(0, 0, 0, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        footer .fas {
+            color: var(--cyan-glow);
+        }
+    </style>
+{% endblock %}
+
+{% block navbar %}
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-mountain"></i> 寻脉
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#home">首页</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#features">功能介绍</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#about">关于我们</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            更多功能
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/map"><i class="fas fa-map me-2"></i>方言地图</a></li>
+                            <li><a class="dropdown-item" href="/statistics"><i class="fas fa-chart-bar me-2"></i>统计分析</a></li>
+                            <li><a class="dropdown-item" href="/evolution"><i class="fas fa-globe me-2"></i>演变模拟</a></li>
+                            <li><a class="dropdown-item" href="/migration"><i class="fas fa-route me-2"></i>历史探究</a></li>
+                            <li><a class="dropdown-item" href="/game"><i class="fas fa-gamepad me-2"></i>方言游戏</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a class="btn btn-enter ms-2" href="/map">进入平台</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+{% endblock %}
+
+{% block content %}
+    <!-- 动态光效层 -->
+    <div class="light-layer" id="light-layer">
+        <!-- 发光圆环 -->
+        <div class="glow-ring"></div>
+        <div class="glow-ring"></div>
+        <div class="glow-ring"></div>
+        <!-- 浮动光点和星点将由JS生成 -->
+    </div>
+
+    <section id="home" class="hero-section">
+        <div class="container text-center" style="position: relative; z-index: 1; max-width: 900px;">
+            <div class="mb-6">
+                <h1 class="title-xunmai">寻 脉</h1>
+            </div>
+            <div class="mb-4">
+                <p class="subtitle">方言地理分布与语言演变可视化教学平台</p>
+            </div>
+            <div class="mb-6">
+                <p class="lead lead-text">
+                    探索中国方言的地理分布，了解语言演变的奥秘<br>
+                    为地理课堂提供跨学科教学资源
+                </p>
+            </div>
+            <div class="mb-8">
+                <a href="/map" class="btn btn-enter me-3 px-8 py-3">
+                    <i class="fas fa-map-marked-alt me-2"></i> 进入地图
+                </a>
+                <a href="/statistics" class="btn btn-outline-enter px-8 py-3">
+                    <i class="fas fa-chart-bar me-2"></i> 查看统计
+                </a>
+            </div>
+            <div class="row justify-content-center g-4">
+                <div class="col-md-4 col-sm-6">
+                    <div class="stat-card">
+                        <div class="stat-number">69+</div>
+                        <div class="stat-label">方言点覆盖</div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <div class="stat-card">
+                        <div class="stat-number">10</div>
+                        <div class="stat-label">方言大区</div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <div class="stat-card">
+                        <div class="stat-number">50年</div>
+                        <div class="stat-label">演变预测</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="py-8 features-section">
+        <div class="container">
+            <h2 class="section-title text-center mb-8">平台功能</h2>
+            <div class="row g-5">
+                <div class="col-lg-4 col-md-6">
+                    <div class="card card-hover h-100 p-5 text-center">
+                        <div class="feature-icon mb-4"><i class="fas fa-map-marked-alt"></i></div>
+                        <h3 class="h5 mb-3" style="color: var(--primary-green);">方言地图</h3>
+                        <p class="text-muted" style="line-height: 1.7;">基于高德地图的方言分布可视化，覆盖全国69+方言点，支持缩放查看各地方言信息</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card card-hover h-100 p-5 text-center">
+                        <div class="feature-icon mb-4"><i class="fas fa-info-circle"></i></div>
+                        <h3 class="h5 mb-3" style="color: var(--primary-green);">详细介绍</h3>
+                        <p class="text-muted" style="line-height: 1.7;">每个方言点提供详细介绍，包括方言特色、历史背景、文化影响及地方美食等信息</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card card-hover h-100 p-5 text-center">
+                        <div class="feature-icon mb-4"><i class="fas fa-chart-bar"></i></div>
+                        <h3 class="h5 mb-3" style="color: var(--primary-green);">数据统计</h3>
+                        <p class="text-muted" style="line-height: 1.7;">方言区人口统计、年轻人使用率分析、濒危等级分布，支持多种图表展示</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card card-hover h-100 p-5 text-center">
+                        <div class="feature-icon mb-4"><i class="fas fa-search"></i></div>
+                        <h3 class="h5 mb-3" style="color: var(--primary-green);">快速搜索</h3>
+                        <p class="text-muted" style="line-height: 1.7;">支持按城市名称、省份、方言区进行搜索，快速定位目标方言点</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card card-hover h-100 p-5 text-center">
+                        <div class="feature-icon mb-4"><i class="fas fa-network-wired"></i></div>
+                        <h3 class="h5 mb-3" style="color: var(--primary-green);">方言关联</h3>
+                        <p class="text-muted" style="line-height: 1.7;">展示同方言区其他城市，便于对比学习不同地区的方言特点</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card card-hover h-100 p-5 text-center">
+                        <div class="feature-icon mb-4"><i class="fas fa-line-chart"></i></div>
+                        <h3 class="h5 mb-3" style="color: var(--primary-green);">演变模拟</h3>
+                        <p class="text-muted" style="line-height: 1.7;">使用元胞自动机模拟方言在未来50年的变化趋势，支持参数调节</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card card-hover h-100 p-5 text-center">
+                        <div class="feature-icon mb-4"><i class="fas fa-history"></i></div>
+                        <h3 class="h5 mb-3" style="color: var(--primary-green);">历史探究</h3>
+                        <p class="text-muted" style="line-height: 1.7;">探索人口迁移与方言演变的历史联系，了解方言形成的连续过程</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card card-hover h-100 p-5 text-center">
+                        <div class="feature-icon mb-4"><i class="fas fa-gamepad"></i></div>
+                        <h3 class="h5 mb-3" style="color: var(--primary-green);">方言游戏</h3>
+                        <p class="text-muted" style="line-height: 1.7;">"你说我猜"方言词汇小游戏，五选一答题模式，支持学习与挑战</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card card-hover h-100 p-5 text-center">
+                        <div class="feature-icon mb-4"><i class="fas fa-graduation-cap"></i></div>
+                        <h3 class="h5 mb-3" style="color: var(--primary-green);">教学资源</h3>
+                        <p class="text-muted" style="line-height: 1.7;">提供方言知识卡片、特色词汇、常用表达，支持地理课堂跨学科教学</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="py-8 about-section">
+        <div class="container">
+            <h2 class="section-title text-center mb-8">关于寻脉</h2>
+            <div class="row align-items-center gap-6">
+                <div class="col-lg-6">
+                    <h3 class="h2 mb-5" style="color: var(--primary-green);">探索方言之美，传承语言文化</h3>
+                    <p class="text-muted mb-4" style="line-height: 1.9; font-size: 1.05rem;">
+                        "寻脉"是一个面向地理课堂的跨学科教学平台，旨在通过可视化手段展示中国方言的地理分布与语言演变规律。
+                    </p>
+                    <p class="text-muted mb-5" style="line-height: 1.9; font-size: 1.05rem;">
+                        平台整合了方言学、地理学、统计学等多学科知识，为学生提供直观、互动的学习体验，帮助理解语言与地理环境的相互关系。
+                    </p>
+                    <ul class="list-unstyled">
+                        <li class="mb-3"><i class="fas fa-check-circle check-item me-2"></i> <strong>真实数据：</strong>基于《中国语言地图集》分类</li>
+                        <li class="mb-3"><i class="fas fa-check-circle check-item me-2"></i> <strong>科学分析：</strong>专业的空间分析与统计方法</li>
+                        <li class="mb-3"><i class="fas fa-check-circle check-item me-2"></i> <strong>互动体验：</strong>支持地图缩放，信息查询</li>
+                        <li class="mb-3"><i class="fas fa-check-circle check-item me-2"></i> <strong>教学友好：</strong>提供教学资源与分析报告</li>
+                    </ul>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-lg rounded-4 overflow-hidden" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%);">
+                        <div class="p-5 text-center" style="height: 220px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                            <div class="mb-3" style="width: 90px; height: 90px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-language" style="color: #ffffff; font-size: 2.8rem;"></i>
+                            </div>
+                            <div class="text-white/80 text-4xl font-bold" style="font-family: 'Ma Shan Zheng', cursive; letter-spacing: 0.15em;">方言</div>
+                            <div class="text-white/50 mt-1 text-sm">Chinese Dialects</div>
+                        </div>
+                        <div class="card-body p-4 bg-white/10 backdrop-blur-sm">
+                            <h5 class="card-title text-white mb-2" style="font-size: 1.1rem;"><i class="fas fa-info-circle me-2"></i>中国方言文化</h5>
+                            <p class="card-text text-white opacity-85" style="line-height: 1.6; font-size: 0.9rem;">
+                                中国地域辽阔，方言种类繁多。从东北的官话到岭南的粤语，从江南的吴语到西南的川话，每一种方言都承载着独特的文化记忆。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block scripts %}
+    <script src="/static/js/main.js"></script>
+{% endblock %}

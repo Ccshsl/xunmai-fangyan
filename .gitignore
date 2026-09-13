@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+
+# 输出产物（图片/生成地图，保留 CSV 便于后端读取）
+outputs/*.png
+outputs/*.jpg
+outputs/*.jpeg
+outputs/*.gif
+outputs/*.html
+outputs/.cache/
+
+# 备份压缩包
+*.zip
+
+# IDE / 系统
+.trae/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# 日志与临时
+*.log
+*.tmp
+*_extract.py

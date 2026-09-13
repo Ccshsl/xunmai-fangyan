@@ -1,0 +1,556 @@
+{% extends "base.html" %}
+{% block title %}寻脉 - 统计分析{% endblock %}
+{% block head_styles %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 16px;
+            padding: 24px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 100%) !important;
+            color: white !important;
+            border-radius: 8px;
+        }
+
+        .analysis-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .filter-btn {
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .filter-btn:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 1);
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 100%) !important;
+            color: white !important;
+            border: none;
+        }
+
+        /* 导航栏 */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), 0 0 60px rgba(6, 182, 212, 0.15);
+        }
+
+        .navbar-brand {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 2.2rem !important;
+            color: #0ea5e9 !important;
+            letter-spacing: 0.1em;
+            font-weight: 500;
+        }
+        
+        .navbar-brand i {
+            font-size: 1.5rem;
+            color: var(--gradient-mid);
+        }
+
+        .nav-link {
+            color: var(--text-light) !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--gradient-mid) !important;
+        }
+
+        /* 页脚 */
+        footer {
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+        }
+
+        footer .fas {
+            color: var(--mint-green);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <!-- 动态背景元素 -->
+    <div class="bg-glow-1"></div>
+    <div class="bg-glow-2"></div>
+    <div class="bg-glow-3"></div>
+
+    <div class="container" style="padding-top: 100px; padding-bottom: 50px;">
+        <h1 class="text-center mb-8" style="color: white; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);">📊 方言数据统计分析</h1>
+
+        <div class="analysis-card mb-8">
+            <h3 class="h5 mb-4" style="color: var(--gradient-start);"><i class="fas fa-search"></i> 选择分析类型</h3>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">分析维度</label>
+                    <select class="form-select" id="analysisDimension">
+                        <option value="dialect_area">方言区</option>
+                        <option value="province">省份</option>
+                        <option value="endanger_level">濒危等级</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">分析指标</label>
+                    <select class="form-select" id="analysisMetric">
+                        <option value="population_10k">使用人口(万人)</option>
+                        <option value="youth_usage_rate">年轻人使用率</option>
+                        <option value="city_count">城市数量</option>
+                        <option value="endanger_index">濒危指数</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">图表类型</label>
+                    <select class="form-select" id="chartType">
+                        <option value="bar">柱状图</option>
+                        <option value="pie">饼图</option>
+                        <option value="line">折线图</option>
+                        <option value="radar">雷达图</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn btn-primary mt-4" style="background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 100%); border: none; box-shadow: 0 4px 15px rgba(30, 64, 175, 0.3);" onclick="updateChart()">
+                <i class="fas fa-chart-bar"></i> 生成图表
+            </button>
+        </div>
+
+        <div class="analysis-card mb-8">
+            <h3 class="h5 mb-4" style="color: var(--gradient-start);"><i class="fas fa-lightbulb"></i> 快捷分析</h3>
+            <div class="d-flex flex-wrap gap-3">
+                <button class="filter-btn btn btn-outline-primary" style="border-color: var(--secondary-green); color: var(--secondary-green);" onclick="quickAnalysis('youth_usage')">
+                    <i class="fas fa-users"></i> 年轻人方言使用率
+                </button>
+                <button class="filter-btn btn btn-outline-primary" style="border-color: var(--secondary-green); color: var(--secondary-green);" onclick="quickAnalysis('city_count')">
+                    <i class="fas fa-map-marker-alt"></i> 各方言区城市数量
+                </button>
+                <button class="filter-btn btn btn-outline-primary" style="border-color: var(--secondary-green); color: var(--secondary-green);" onclick="quickAnalysis('population')">
+                    <i class="fas fa-users"></i> 各方言区人口分布
+                </button>
+                <button class="filter-btn btn btn-outline-primary" style="border-color: var(--secondary-green); color: var(--secondary-green);" onclick="quickAnalysis('endanger_level')">
+                    <i class="fas fa-exclamation-triangle"></i> 濒危等级分布
+                </button>
+                <button class="filter-btn btn btn-outline-primary" style="border-color: var(--secondary-green); color: var(--secondary-green);" onclick="quickAnalysis('usage_vs_population')">
+                    <i class="fas fa-corner-up-right"></i> 使用率与人口关系
+                </button>
+                <button class="filter-btn btn btn-outline-primary" style="border-color: var(--secondary-green); color: var(--secondary-green);" onclick="quickAnalysis('risk_report')">
+                    <i class="fas fa-file-alt"></i> 濒危风险报告
+                </button>
+            </div>
+        </div>
+
+        <div class="analysis-card mb-8">
+            <h3 class="h5 mb-4" id="chartTitle" style="color: var(--primary-green);"><i class="fas fa-chart-bar"></i> 分析结果</h3>
+            <div class="row">
+                <div class="col-lg-8">
+                    <canvas id="mainChart" style="height: 400px;"></canvas>
+                </div>
+                <div class="col-lg-4">
+                    <div class="bg-light rounded-lg p-4" id="summaryStats">
+                        <h5 class="font-weight-bold mb-3" style="color: var(--primary-green);">📈 统计摘要</h5>
+                        <div id="summaryContent">请选择分析选项或点击快捷分析按钮</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="analysis-card">
+            <h3 class="h5 mb-4" style="color: var(--primary-green);"><i class="fas fa-table"></i> 详细数据</h3>
+            <div class="table-responsive">
+                <table class="table table-hover" id="dataTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>排名</th>
+                            <th>名称</th>
+                            <th>方言区</th>
+                            <th>省份</th>
+                            <th>使用人口(万人)</th>
+                            <th>年轻人使用率</th>
+                            <th>濒危等级</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {% endblock %}
+
+{% block scripts %}
+    <script>
+        let dialectData = [];
+        let chartInstance = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+        });
+
+        async function loadData() {
+            const response = await fetch('/api/dialects');
+            dialectData = await response.json();
+            quickAnalysis('youth_usage');
+        }
+
+        function updateChart() {
+            const dimension = document.getElementById('analysisDimension').value;
+            const metric = document.getElementById('analysisMetric').value;
+            const chartType = document.getElementById('chartType').value;
+            renderChart(dimension, metric, chartType);
+        }
+
+        function quickAnalysis(type) {
+            switch(type) {
+                case 'youth_usage':
+                    document.getElementById('analysisDimension').value = 'dialect_area';
+                    document.getElementById('analysisMetric').value = 'youth_usage_rate';
+                    document.getElementById('chartType').value = 'bar';
+                    renderChart('dialect_area', 'youth_usage_rate', 'bar');
+                    break;
+                case 'city_count':
+                    document.getElementById('analysisDimension').value = 'dialect_area';
+                    document.getElementById('analysisMetric').value = 'city_count';
+                    document.getElementById('chartType').value = 'pie';
+                    renderChart('dialect_area', 'city_count', 'pie');
+                    break;
+                case 'population':
+                    document.getElementById('analysisDimension').value = 'dialect_area';
+                    document.getElementById('analysisMetric').value = 'population_10k';
+                    document.getElementById('chartType').value = 'bar';
+                    renderChart('dialect_area', 'population_10k', 'bar');
+                    break;
+                case 'endanger_level':
+                    document.getElementById('analysisDimension').value = 'endanger_level';
+                    document.getElementById('analysisMetric').value = 'city_count';
+                    document.getElementById('chartType').value = 'pie';
+                    renderChart('endanger_level', 'city_count', 'pie');
+                    break;
+                case 'usage_vs_population':
+                    renderScatterChart();
+                    break;
+                case 'risk_report':
+                    showRiskReport();
+                    break;
+            }
+        }
+
+        function renderChart(dimension, metric, chartType) {
+            const groupedData = {};
+            dialectData.forEach(item => {
+                const key = item[dimension];
+                if (!groupedData[key]) {
+                    groupedData[key] = { sum: 0, count: 0, values: [] };
+                }
+                if (metric === 'city_count') {
+                    groupedData[key].sum += 1;
+                } else {
+                    groupedData[key].sum += parseFloat(item[metric]) || 0;
+                }
+                groupedData[key].count++;
+                groupedData[key].values.push(parseFloat(item[metric]) || 0);
+            });
+
+            const labels = Object.keys(groupedData);
+            const data = labels.map(key => {
+                if (metric === 'city_count') {
+                    return groupedData[key].sum;
+                }
+                return groupedData[key].sum / groupedData[key].count;
+            });
+
+            const dimensionNames = {
+                'dialect_area': '方言区',
+                'province': '省份',
+                'endanger_level': '濒危等级'
+            };
+            const metricNames = {
+                'population_10k': '使用人口(万人)',
+                'youth_usage_rate': '年轻人使用率(%)',
+                'city_count': '城市数量',
+                'endanger_index': '濒危指数'
+            };
+
+            document.getElementById('chartTitle').innerHTML = 
+                `<i class="fas fa-chart-bar"></i> ${dimensionNames[dimension]} - ${metricNames[metric]}`;
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            const colors = [
+                'rgba(45, 106, 79, 0.8)',
+                'rgba(64, 145, 108, 0.8)',
+                'rgba(82, 183, 136, 0.8)',
+                'rgba(149, 213, 178, 0.8)',
+                'rgba(216, 243, 220, 0.8)',
+                'rgba(64, 145, 108, 0.7)',
+                'rgba(82, 183, 136, 0.7)',
+                'rgba(149, 213, 178, 0.7)',
+                'rgba(216, 243, 220, 0.7)',
+                'rgba(45, 106, 79, 0.6)'
+            ];
+
+            const borderColors = colors.map(c => c.replace('0.8', '1').replace('0.7', '0.9').replace('0.6', '0.8'));
+
+            const ctx = document.getElementById('mainChart').getContext('2d');
+
+            if (chartType === 'pie') {
+                chartInstance = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: colors,
+                            borderColor: borderColors,
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            } else if (chartType === 'radar') {
+                chartInstance = new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: metricNames[metric],
+                            data: data,
+                            backgroundColor: 'rgba(64, 145, 108, 0.2)',
+                            borderColor: 'rgba(64, 145, 108, 1)',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            } else {
+                const displayData = metric === 'youth_usage_rate' ? data.map(v => v * 100) : data;
+
+                chartInstance = new Chart(ctx, {
+                    type: chartType,
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: metricNames[metric],
+                            data: displayData,
+                            backgroundColor: colors,
+                            borderColor: borderColors,
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            updateSummary(dimension, metric, groupedData);
+            updateTable();
+        }
+
+        function renderScatterChart() {
+            document.getElementById('chartTitle').innerHTML = 
+                '<i class="fas fa-corner-up-right"></i> 使用率与人口关系散点图';
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: '方言点',
+                        data: dialectData.map(item => ({
+                            x: item.population_10k,
+                            y: item.youth_usage_rate * 100
+                        })),
+                        backgroundColor: dialectData.map(item => 
+                            item.endanger_level === '安全' ? 'green' :
+                            item.endanger_level === '较安全' ? 'blue' :
+                            item.endanger_level === '脆弱' ? 'orange' : 'red'
+                        ),
+                        pointRadius: 8,
+                        pointHoverRadius: 12
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: { display: true, text: '使用人口(万人)' }
+                        },
+                        y: {
+                            title: { display: true, text: '年轻人使用率(%)' },
+                            min: 0,
+                            max: 100
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                generateLabels: () => [
+                                    { text: '安全', fillStyle: 'green', strokeStyle: 'green' },
+                                    { text: '较安全', fillStyle: 'blue', strokeStyle: 'blue' },
+                                    { text: '脆弱', fillStyle: 'orange', strokeStyle: 'orange' },
+                                    { text: '濒危', fillStyle: 'red', strokeStyle: 'red' }
+                                ]
+                            }
+                        }
+                    }
+                }
+            });
+
+            const avgUsage = dialectData.reduce((sum, item) => sum + item.youth_usage_rate, 0) / dialectData.length;
+            const avgPopulation = dialectData.reduce((sum, item) => sum + item.population_10k, 0) / dialectData.length;
+            document.getElementById('summaryContent').innerHTML = `
+                <p><strong>总方言点数:</strong> ${dialectData.length} 个</p>
+                <p><strong>平均使用率:</strong> ${(avgUsage * 100).toFixed(1)}%</p>
+                <p><strong>平均使用人口:</strong> ${avgPopulation.toFixed(1)} 万人</p>
+            `;
+
+            updateTable();
+        }
+
+        function showRiskReport() {
+            document.getElementById('chartTitle').innerHTML = 
+                '<i class="fas fa-exclamation-triangle"></i> 濒危风险报告';
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            const levelCounts = { '安全': 0, '较安全': 0, '脆弱': 0, '濒危': 0 };
+            dialectData.forEach(item => {
+                levelCounts[item.endanger_level]++;
+            });
+
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['安全', '较安全', '脆弱', '濒危'],
+                    datasets: [{
+                        data: [levelCounts['安全'], levelCounts['较安全'], levelCounts['脆弱'], levelCounts['濒危']],
+                        backgroundColor: ['green', 'blue', 'orange', 'red'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            const total = dialectData.length;
+            const endangeredPercent = ((levelCounts['脆弱'] + levelCounts['濒危']) / total * 100).toFixed(1);
+            document.getElementById('summaryContent').innerHTML = `
+                <p><strong>📊 风险评估报告</strong></p>
+                <p><strong>安全:</strong> ${levelCounts['安全']} 个 (${(levelCounts['安全']/total*100).toFixed(1)}%)</p>
+                <p><strong>较安全:</strong> ${levelCounts['较安全']} 个 (${(levelCounts['较安全']/total*100).toFixed(1)}%)</p>
+                <p><strong>⚠️ 脆弱:</strong> ${levelCounts['脆弱']} 个 (${(levelCounts['脆弱']/total*100).toFixed(1)}%)</p>
+                <p><strong>🚨 濒危:</strong> ${levelCounts['濒危']} 个 (${(levelCounts['濒危']/total*100).toFixed(1)}%)</p>
+                <p class="mt-2" style="color: orange;"><strong>需要关注:</strong> ${endangeredPercent}% 的方言点面临风险</p>
+            `;
+
+            updateTable();
+        }
+
+        function updateSummary(dimension, metric, groupedData) {
+            const labels = Object.keys(groupedData);
+            const data = labels.map(key => {
+                if (metric === 'city_count') {
+                    return groupedData[key].sum;
+                }
+                return groupedData[key].sum / groupedData[key].count;
+            });
+
+            const maxValue = Math.max(...data);
+            const minValue = Math.min(...data);
+            const avgValue = data.reduce((a, b) => a + b, 0) / data.length;
+
+            let unit = '';
+            if (metric === 'youth_usage_rate') {
+                unit = '%';
+            } else if (metric === 'population_10k') {
+                unit = '万人';
+            }
+
+            document.getElementById('summaryContent').innerHTML = `
+                <p><strong>数据类别:</strong> ${labels.length} 个</p>
+                <p><strong>最大值:</strong> ${metric === 'youth_usage_rate' ? (maxValue * 100).toFixed(1) : maxValue.toFixed(1)}${unit}</p>
+                <p><strong>最小值:</strong> ${metric === 'youth_usage_rate' ? (minValue * 100).toFixed(1) : minValue.toFixed(1)}${unit}</p>
+                <p><strong>平均值:</strong> ${metric === 'youth_usage_rate' ? (avgValue * 100).toFixed(1) : avgValue.toFixed(1)}${unit}</p>
+            `;
+        }
+
+        function updateTable() {
+            let html = '';
+            dialectData.sort((a, b) => b.population_10k - a.population_10k);
+            dialectData.forEach((item, index) => {
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td><strong>${item.city}</strong></td>
+                        <td>${item.dialect_area}</td>
+                        <td>${item.province}</td>
+                        <td>${item.population_10k}</td>
+                        <td>${(item.youth_usage_rate * 100).toFixed(1)}%</td>
+                        <td><span class="badge" style="background: ${
+                            item.endanger_level === '安全' ? 'green' :
+                            item.endanger_level === '较安全' ? 'blue' :
+                            item.endanger_level === '脆弱' ? 'orange' : 'red'
+                        };">${item.endanger_level}</span></td>
+                    </tr>
+                `;
+            });
+            document.getElementById('tableBody').innerHTML = html;
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,1281 @@
+{% extends "base.html" %}
+{% block title %}方言词汇游戏 - 你说我猜 | 寻脉方言系统{% endblock %}
+{% block head_styles %}
+    <style>
+        :root {
+            --gradient-start: #1e40af;
+            --gradient-mid: #06b6d4;
+            --gradient-end: #059669;
+            --primary-green: #059669;
+            --secondary-green: #10b981;
+            --light-green: #34d399;
+            --mint-green: #10b981;
+            --cream: #f8fafc;
+            --text-light: #475569;
+            --text-dark: #1e3a5f;
+            --pale-green: rgba(16, 185, 129, 0.1);
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), 0 0 60px rgba(6, 182, 212, 0.15);
+            padding: 1rem 0;
+        }
+
+        .navbar-brand {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 2.2rem !important;
+            color: #0ea5e9 !important;
+            letter-spacing: 0.1em;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .navbar-brand i {
+            font-size: 1.5rem;
+            color: var(--gradient-mid);
+        }
+
+        .nav-link {
+            color: var(--text-light) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background: rgba(30, 64, 175, 0.1);
+            color: var(--gradient-mid) !important;
+        }
+
+        /* 游戏容器 */
+        .game-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 游戏头部 */
+        .game-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+            padding: 25px 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .game-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .game-title h1 {
+            font-family: 'ZCOOL KuaiLe', cursive;
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0;
+        }
+
+        .game-title .icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid));
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.8rem;
+        }
+
+        /* 统计卡片 */
+        .stats-cards {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            padding: 15px 25px;
+            border-radius: 15px;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .stat-card.score {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid));
+            color: white;
+        }
+
+        .stat-card.timer {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+        }
+
+        .stat-card .label {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        .stat-card .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        /* 模式切换 */
+        .mode-switch {
+            display: flex;
+            gap: 10px;
+        }
+
+        .mode-btn {
+            padding: 12px 25px;
+            border: 2px solid var(--gradient-start);
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--gradient-start);
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid));
+            color: white;
+            border-color: transparent;
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(30, 64, 175, 0.3);
+        }
+
+        /* 主游戏区域 */
+        .game-main {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 题目卡片 */
+        .question-card {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(16, 185, 129, 0.1));
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .question-label {
+            font-size: 1rem;
+            color: var(--text-light);
+            margin-bottom: 15px;
+        }
+
+        .question-word {
+            font-family: 'ZCOOL KuaiLe', cursive;
+            font-size: 4rem;
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+        }
+
+        .question-meaning {
+            font-size: 1.2rem;
+            color: var(--text-dark);
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .question-hint {
+            font-size: 1rem;
+            color: var(--text-light);
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+            display: none;
+        }
+
+        .question-hint.show {
+            display: inline-block;
+        }
+
+        /* 选项区域 */
+        .options-section {
+            margin-bottom: 30px;
+        }
+
+        .options-title {
+            font-size: 1.1rem;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .option-btn {
+            padding: 20px 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid rgba(6, 182, 212, 0.3);
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 90px;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: var(--gradient-mid);
+            background: rgba(6, 182, 212, 0.05);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(30, 64, 175, 0.15);
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .option-btn.correct {
+            background: linear-gradient(135deg, var(--gradient-mid), var(--gradient-end));
+            border-color: var(--gradient-start);
+            color: white;
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+        }
+
+        .option-btn.wrong {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            border-color: #ee5a24;
+            color: white;
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+        }
+
+        .option-btn .option-badge {
+            width: 32px;
+            height: 32px;
+            background: var(--primary-green);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .option-btn:hover:not(:disabled) .option-badge {
+            background: white;
+            color: var(--primary-green);
+        }
+
+        .option-btn.correct .option-badge {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .option-btn.wrong .option-badge {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* 操作按钮 */
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, #2563eb, #06b6d4);
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+            padding: 18px 40px;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+        }
+
+        .action-btn.secondary {
+            background: white;
+            color: var(--primary-green);
+            border: 2px solid var(--primary-green);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(45, 106, 79, 0.3);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 答题记录 */
+        .answer-history {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid var(--pale-green);
+        }
+
+        .answer-history h6 {
+            color: var(--primary-green);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .history-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 15px;
+            background: var(--cream);
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .history-item.correct {
+            border-left: 4px solid var(--light-green);
+        }
+
+        .history-item.wrong {
+            border-left: 4px solid #ff6b6b;
+        }
+
+        .history-item .word {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .history-item .result {
+            font-size: 0.85rem;
+        }
+
+        .history-item .result.correct {
+            color: var(--light-green);
+        }
+
+        .history-item .result.wrong {
+            color: #ff6b6b;
+        }
+
+        /* 结果弹窗 */
+        .result-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            padding: 50px 60px;
+            border-radius: 25px;
+            box-shadow: 0 20px 60px rgba(45, 106, 79, 0.25);
+            z-index: 1000;
+            text-align: center;
+            display: none;
+            min-width: 400px;
+            border: 3px solid #10b981;
+            overflow: hidden;
+            opacity: 1;
+        }
+
+        .result-popup::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, var(--pale-green) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .result-popup.show {
+            display: block;
+            animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes popIn {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.05);
+            }
+            100% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .result-popup .icon-container {
+            position: relative;
+            z-index: 1;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .result-popup .icon-container.correct {
+            background: linear-gradient(135deg, #34d399, #10b981);
+            box-shadow: 0 0 30px rgba(82, 183, 136, 0.5);
+        }
+
+        .result-popup .icon-container.wrong {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            box-shadow: 0 0 30px rgba(255, 107, 107, 0.5);
+        }
+
+        .result-popup .icon {
+            font-size: 4rem;
+            color: white;
+        }
+
+        .result-popup h3 {
+            position: relative;
+            z-index: 1;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #1e3a5f;
+        }
+
+        .result-popup .word-display {
+            position: relative;
+            z-index: 1;
+            background: rgba(16, 185, 129, 0.1);
+            padding: 15px 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            color: #059669;
+            font-weight: 600;
+        }
+
+        .result-popup .score-info {
+            position: relative;
+            z-index: 1;
+            font-size: 1rem;
+            color: var(--text-light);
+            margin-bottom: 25px;
+        }
+
+        .result-popup .divider {
+            position: relative;
+            z-index: 1;
+            width: 60px;
+            height: 3px;
+            background: var(--mint-green);
+            margin: 25px auto;
+            border-radius: 2px;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        /* 游戏结束弹窗 */
+        .game-over-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            text-align: center;
+            display: none;
+            min-width: 400px;
+        }
+
+        .game-over-popup.show {
+            display: block;
+            animation: popIn 0.3s ease;
+        }
+
+        .game-over-popup h2 {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 2.5rem;
+            color: var(--primary-green);
+            margin-bottom: 20px;
+        }
+
+        .final-score {
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--primary-green);
+            margin: 20px 0;
+        }
+
+        .final-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+        }
+
+        .final-stat {
+            text-align: center;
+        }
+
+        .final-stat .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--secondary-green);
+        }
+
+        .final-stat .label {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        /* 页脚 */
+        .footer {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--secondary-green) 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        /* 进度条 */
+        .progress-section {
+            margin-bottom: 20px;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .progress-bar-container {
+            height: 10px;
+            background: var(--pale-green);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--light-green), var(--primary-green));
+            transition: width 0.3s ease;
+            border-radius: 5px;
+        }
+
+        /* 开始界面 */
+        .start-screen {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .start-screen .game-icon {
+            font-size: 5rem;
+            color: var(--primary-green);
+            margin-bottom: 20px;
+        }
+
+        .start-screen h2 {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 3rem;
+            color: var(--primary-green);
+            margin-bottom: 20px;
+        }
+
+        .start-screen p {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .start-screen .action-btn {
+            margin-top: 30px;
+            position: relative;
+            z-index: 10;
+            display: inline-flex !important;
+        }
+
+        .game-rules {
+            background: var(--cream);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px auto;
+            max-width: 500px;
+            text-align: left;
+        }
+
+        .game-rules h5 {
+            color: var(--primary-green);
+            margin-bottom: 15px;
+        }
+
+        .game-rules ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .game-rules li {
+            margin-bottom: 10px;
+            color: var(--text-dark);
+        }
+
+        @media (max-width: 768px) {
+            .game-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .stats-cards {
+                justify-content: center;
+            }
+
+            .mode-switch {
+                justify-content: center;
+            }
+
+            .question-word {
+                font-size: 3rem;
+            }
+
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <!-- 动态背景元素 -->
+    <div class="bg-glow-1"></div>
+    <div class="bg-glow-2"></div>
+    <div class="bg-glow-3"></div>
+
+    <!-- 游戏容器 -->
+    <div class="game-container">
+        <!-- 游戏头部 -->
+        <div class="game-header">
+            <div class="game-title">
+                <div class="icon">
+                    <i class="fas fa-gamepad"></i>
+                </div>
+                <h1>你说我猜</h1>
+            </div>
+
+            <div class="stats-cards">
+                <div class="stat-card score">
+                    <div class="label">得分</div>
+                    <div class="value" id="score">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">正确</div>
+                    <div class="value" id="correct-count">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">错误</div>
+                    <div class="value" id="wrong-count">0</div>
+                </div>
+                <div class="stat-card timer" id="timer-card" style="display: none;">
+                    <div class="label">时间</div>
+                    <div class="value" id="timer">60</div>
+                </div>
+            </div>
+
+            <div class="mode-switch">
+                <button class="mode-btn active" data-mode="learn" onclick="switchMode('learn')">
+                    <i class="fas fa-book me-1"></i>学习模式
+                </button>
+                <button class="mode-btn" data-mode="challenge" onclick="switchMode('challenge')">
+                    <i class="fas fa-trophy me-1"></i>挑战模式
+                </button>
+            </div>
+        </div>
+
+        <!-- 主游戏区域 -->
+        <div class="game-main">
+            <!-- 开始界面 -->
+            <div class="start-screen" id="start-screen" style="display: block;">
+                <div class="game-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <h2>方言词汇游戏</h2>
+                <p>猜一猜这些有趣的方言词汇属于哪个方言区，在游戏中学习中国丰富多彩的方言文化！</p>
+
+                <div class="game-rules">
+                    <h5><i class="fas fa-info-circle me-2"></i>游戏规则</h5>
+                    <ul>
+                        <li>系统显示一个方言词汇及其含义</li>
+                        <li>从五个选项中选择正确的方言区</li>
+                        <li>答对得10分，答错不扣分</li>
+                        <li>学习模式：无时间限制，可查看提示</li>
+                        <li>挑战模式：60秒限时，考验你的方言知识</li>
+                    </ul>
+                </div>
+
+                <button class="action-btn primary" onclick="startGame()" style="background: linear-gradient(135deg, #2563eb, #06b6d4); color: white; padding: 18px 40px; border-radius: 12px; font-size: 1.1rem; font-weight: 600; border: none; cursor: pointer; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4); margin-top: 30px; display: inline-flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-play"></i> 开始游戏
+                </button>
+            </div>
+
+            <!-- 游戏界面 -->
+            <div id="game-screen" style="display: none;">
+                <!-- 进度条 -->
+                <div class="progress-section">
+                    <div class="progress-info">
+                        <span id="question-progress">第 1 题 / 共 10 题</span>
+                        <span id="accuracy-display">正确率: 0%</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" id="progress-bar" style="width: 10%"></div>
+                    </div>
+                </div>
+
+                <!-- 题目卡片 -->
+                <div class="question-card">
+                    <div class="question-label">请猜这个词属于哪个方言区？</div>
+                    <div class="question-word" id="question-word">落雨</div>
+                    <div class="question-meaning" id="question-meaning">意思：下雨</div>
+                    <div class="question-hint" id="question-hint"></div>
+                </div>
+
+                <!-- 选项区域 -->
+                <div class="options-section">
+                    <div class="options-title">请选择答案：</div>
+                    <div class="options-grid" id="options-grid">
+                        <!-- 选项按钮将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+
+                <!-- 操作按钮 -->
+                <div class="action-buttons">
+                    <button class="action-btn secondary" id="hint-btn" onclick="showHint()">
+                        <i class="fas fa-lightbulb"></i> 显示提示
+                    </button>
+                    <button class="action-btn secondary" id="skip-btn" onclick="skipQuestion()">
+                        <i class="fas fa-forward"></i> 跳过此题
+                    </button>
+                </div>
+
+                <!-- 答题记录 -->
+                <div class="answer-history">
+                    <h6><i class="fas fa-history"></i> 答题记录</h6>
+                    <div class="history-list" id="history-list">
+                        <div class="text-center text-muted py-3">暂无答题记录</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 结果弹窗 -->
+    <div class="overlay" id="overlay"></div>
+    <div class="result-popup" id="result-popup">
+        <div class="icon-container" id="result-icon-container">
+            <div class="icon" id="result-icon"><i class="fas fa-check-circle"></i></div>
+        </div>
+        <h3 id="result-title">回答正确！</h3>
+        <div class="word-display" id="word-display">词汇：落雨</div>
+        <div class="score-info" id="score-info">本轮得分：0分</div>
+        <div class="divider"></div>
+        <button class="action-btn primary" onclick="closeResult()">
+            <i class="fas fa-arrow-right"></i> 继续
+        </button>
+    </div>
+
+    <!-- 游戏结束弹窗 -->
+    <div class="game-over-popup" id="game-over-popup">
+        <h2>游戏结束！</h2>
+        <div class="final-score" id="final-score">0</div>
+        <p>分</p>
+        <div class="final-stats">
+            <div class="final-stat">
+                <div class="value" id="final-correct">0</div>
+                <div class="label">答对</div>
+            </div>
+            <div class="final-stat">
+                <div class="value" id="final-wrong">0</div>
+                <div class="label">答错</div>
+            </div>
+            <div class="final-stat">
+                <div class="value" id="final-accuracy">0%</div>
+                <div class="label">正确率</div>
+            </div>
+        </div>
+        <button class="action-btn primary" onclick="restartGame()">
+            <i class="fas fa-redo"></i> 再玩一次
+        </button>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        // 创建动态背景元素（优化性能）
+        function createDynamicBackground() {
+            // 游戏页面禁用动态背景以保证游戏流畅
+        }
+        
+        window.addEventListener('load', createDynamicBackground);
+    </script>
+    <script>
+        // 游戏状态
+        let gameState = {
+            mode: 'learn',
+            score: 0,
+            correct: 0,
+            wrong: 0,
+            currentQuestion: 0,
+            totalQuestions: 10,
+            timeLeft: 60,
+            timer: null,
+            isPlaying: false,
+            questions: [],
+            answered: false
+        };
+
+        // 所有方言区
+        const allDialectAreas = [
+            '粤语区', '西南官话区', '东北官话区', '吴语区', '湘语区',
+            '闽语区', '客家话区', '赣语区', '中原官话区', '西北官话区',
+            '胶辽官话区', '晋语区', '兰银官话区'
+        ];
+
+        // 方言词汇库
+        const dialectWords = [
+            // 粤语词汇
+            { word: '落雨', meaning: '下雨', dialect: '粤语区', hint: '南方沿海地区常用，香港电影中常听到' },
+            { word: '食饭', meaning: '吃饭', dialect: '粤语区', hint: '南方沿海地区常用，TVB电视剧常见' },
+            { word: '唔该', meaning: '谢谢/麻烦你', dialect: '粤语区', hint: '南方沿海地区常用，礼貌用语' },
+            { word: '系度', meaning: '在这里', dialect: '粤语区', hint: '南方沿海地区常用' },
+            { word: '几多', meaning: '多少', dialect: '粤语区', hint: '南方沿海地区常用，"几多钱"就是多少钱' },
+
+            // 四川话词汇
+            { word: '巴适', meaning: '舒服、很好', dialect: '西南官话区', hint: '西南地区常用，四川人最爱说' },
+            { word: '耍朋友', meaning: '谈恋爱', dialect: '西南官话区', hint: '西南地区常用，"耍"就是玩的意思' },
+            { word: '摆龙门阵', meaning: '聊天', dialect: '西南官话区', hint: '西南地区常用，四川茶馆文化' },
+            { word: '雄起', meaning: '加油、振作', dialect: '西南官话区', hint: '西南地区常用，足球场上常听到' },
+            { word: '瓜娃子', meaning: '傻孩子', dialect: '西南官话区', hint: '西南地区常用，四川人骂人话' },
+
+            // 东北话词汇
+            { word: '咋整', meaning: '怎么办', dialect: '东北官话区', hint: '东北地区常用，小品中常听到' },
+            { word: '唠嗑', meaning: '聊天', dialect: '东北官话区', hint: '东北地区常用，东北人热情好客' },
+            { word: '埋汰', meaning: '脏、不干净', dialect: '东北官话区', hint: '东北地区常用，也可以指侮辱人' },
+            { word: '得瑟', meaning: '显摆', dialect: '东北官话区', hint: '东北地区常用，形容人爱炫耀' },
+            { word: '膈应', meaning: '讨厌、恶心', dialect: '东北官话区', hint: '东北地区常用，表示反感' },
+
+            // 吴语词汇
+            { word: '阿拉', meaning: '我们', dialect: '吴语区', hint: '江南地区常用，上海话代表词' },
+            { word: '侬', meaning: '你', dialect: '吴语区', hint: '江南地区常用，"侬好"就是你好' },
+            { word: '辰光', meaning: '时间', dialect: '吴语区', hint: '江南地区常用，"什么辰光"就是什么时候' },
+            { word: '晓得', meaning: '知道', dialect: '吴语区', hint: '江南地区常用，"我晓得"就是我知道' },
+            { word: '困觉', meaning: '睡觉', dialect: '吴语区', hint: '江南地区常用，"困"就是睡' },
+
+            // 湘语词汇
+            { word: '恰饭', meaning: '吃饭', dialect: '湘语区', hint: '湖南地区常用，"恰"就是吃的意思' },
+            { word: '搞么子', meaning: '干什么', dialect: '湘语区', hint: '湖南地区常用，"么子"是什么' },
+            { word: '霸蛮', meaning: '执着、拼命', dialect: '湘语区', hint: '湖南地区常用，形容湖南人性格' },
+            { word: '满哥', meaning: '小伙子', dialect: '湘语区', hint: '湖南地区常用，长沙话特色' },
+
+            // 闽语词汇
+            { word: '厝', meaning: '房子', dialect: '闽语区', hint: '福建台湾地区常用，闽南话特色' },
+            { word: '阿嬷', meaning: '奶奶', dialect: '闽语区', hint: '福建台湾地区常用，闽南语称呼' },
+            { word: '歹势', meaning: '不好意思', dialect: '闽语区', hint: '福建台湾地区常用，台湾话常见' },
+            { word: '呷饭', meaning: '吃饭', dialect: '闽语区', hint: '福建台湾地区常用，"呷"就是吃' },
+
+            // 客家话词汇
+            { word: '涯', meaning: '我', dialect: '客家话区', hint: '客家地区常用，客家话第一人称' },
+            { word: '食朝', meaning: '吃早饭', dialect: '客家话区', hint: '客家地区常用，保留古汉语特点' },
+            { word: '做嘛', meaning: '干什么', dialect: '客家话区', hint: '客家地区常用，"嘛"是什么' },
+            { word: '得闲', meaning: '有空', dialect: '客家话区', hint: '客家地区常用，"得闲来聊"' },
+
+            // 赣语词汇
+            { word: '作兴', meaning: '喜欢、看得起', dialect: '赣语区', hint: '江西地区常用，南昌话特色' },
+            { word: '细伢子', meaning: '小孩子', dialect: '赣语区', hint: '江西地区常用，南昌话称呼' },
+
+            // 河南话词汇
+            { word: '中', meaning: '行、可以', dialect: '中原官话区', hint: '中原地区常用，河南人最爱说' },
+            { word: '弄啥嘞', meaning: '干什么呢', dialect: '中原官话区', hint: '中原地区常用，河南话代表词' },
+            { word: '得劲', meaning: '舒服', dialect: '中原官话区', hint: '中原地区常用，河南话特色' },
+
+            // 陕西话词汇
+            { word: '额滴神', meaning: '我的天', dialect: '西北官话区', hint: '西北地区常用，陕西话代表词' },
+            { word: '么麻达', meaning: '没问题', dialect: '西北官话区', hint: '西北地区常用，陕西话特色' },
+            { word: '克里马擦', meaning: '快点', dialect: '西北官话区', hint: '西北地区常用，陕西话催促用语' },
+
+            // 山东话词汇
+            { word: '俺', meaning: '我/我们', dialect: '胶辽官话区', hint: '山东地区常用，山东话第一人称' },
+            { word: '杠杠的', meaning: '非常好', dialect: '胶辽官话区', hint: '山东地区常用，形容很棒' },
+            { word: '知不道', meaning: '不知道', dialect: '胶辽官话区', hint: '山东地区常用，语序特殊' },
+
+            // 山西话词汇
+            { word: '乃', meaning: '那', dialect: '晋语区', hint: '山西地区常用，晋语特色' },
+            { word: '圪蹴', meaning: '蹲着', dialect: '晋语区', hint: '山西地区常用，晋语保留古语' },
+            { word: '撇', meaning: '聊天', dialect: '晋语区', hint: '山西地区常用，"撇一撇"就是聊一聊' },
+
+            // 云南话词汇
+            { word: '给是', meaning: '是不是', dialect: '西南官话区', hint: '云南地区常用，云南话特色' },
+            { word: '整哪样', meaning: '干什么', dialect: '西南官话区', hint: '云南地区常用，云南话疑问句' },
+
+            // 贵州话词汇
+            { word: '要得', meaning: '可以、行', dialect: '西南官话区', hint: '贵州地区常用，西南官话特色' },
+            { word: '没得', meaning: '没有', dialect: '西南官话区', hint: '西南地区常用，否定词' },
+
+            // 甘肃话词汇
+            { word: '攒劲', meaning: '很好、给力', dialect: '兰银官话区', hint: '西北地区常用，甘肃宁夏话特色' },
+            { word: '莎莎', meaning: '漂亮', dialect: '兰银官话区', hint: '甘肃地区常用，形容人或物' },
+
+            // 新疆话词汇
+            { word: '亚克西', meaning: '好', dialect: '兰银官话区', hint: '新疆地区常用，维吾尔语借词' },
+            { word: '巴扎', meaning: '集市', dialect: '兰银官话区', hint: '新疆地区常用，维吾尔语借词' }
+        ];
+
+        // 切换模式
+        function switchMode(mode) {
+            gameState.mode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+            document.getElementById('timer-card').style.display = mode === 'challenge' ? 'block' : 'none';
+        }
+
+        // 开始游戏
+        function startGame() {
+            gameState.score = 0;
+            gameState.correct = 0;
+            gameState.wrong = 0;
+            gameState.currentQuestion = 0;
+            gameState.isPlaying = true;
+            gameState.answered = false;
+            gameState.questions = shuffleArray([...dialectWords]).slice(0, gameState.totalQuestions);
+
+            updateStats();
+
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+
+            document.getElementById('hint-btn').style.display = gameState.mode === 'learn' ? 'flex' : 'none';
+            document.getElementById('skip-btn').style.display = 'flex';
+
+            document.getElementById('history-list').innerHTML = '<div class="text-center text-muted py-3">暂无答题记录</div>';
+
+            showQuestion();
+
+            if (gameState.mode === 'challenge') {
+                gameState.timeLeft = 60;
+                startTimer();
+            }
+        }
+
+        // 显示题目
+        function showQuestion() {
+            let question = gameState.questions[gameState.currentQuestion];
+            gameState.answered = false;
+
+            document.getElementById('question-word').textContent = question.word;
+            document.getElementById('question-meaning').textContent = `意思：${question.meaning}`;
+            document.getElementById('question-hint').classList.remove('show');
+            document.getElementById('question-hint').textContent = `提示：${question.hint}`;
+
+            // 更新进度
+            document.getElementById('question-progress').textContent = `第 ${gameState.currentQuestion + 1} 题 / 共 ${gameState.totalQuestions} 题`;
+            document.getElementById('progress-bar').style.width = `${((gameState.currentQuestion + 1) / gameState.totalQuestions) * 100}%`;
+
+            // 更新正确率
+            let total = gameState.correct + gameState.wrong;
+            let accuracy = total > 0 ? Math.round(gameState.correct / total * 100) : 0;
+            document.getElementById('accuracy-display').textContent = `正确率: ${accuracy}%`;
+
+            // 生成选项
+            generateOptions(question);
+        }
+
+        // 生成选项
+        function generateOptions(question) {
+            let options = [question.dialect];
+
+            // 添加5个错误选项（总共6个选项）
+            let wrongOptions = allDialectAreas.filter(d => d !== question.dialect);
+            wrongOptions = shuffleArray(wrongOptions).slice(0, 5);
+            options = options.concat(wrongOptions);
+
+            // 打乱选项顺序
+            options = shuffleArray(options);
+
+            let optionsGrid = document.getElementById('options-grid');
+            optionsGrid.innerHTML = '';
+
+            options.forEach((option, index) => {
+                let btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<span class="option-badge">${['A', 'B', 'C', 'D', 'E', 'F'][index]}</span><span>${option}</span>`;
+                btn.onclick = () => selectOption(option, btn);
+                optionsGrid.appendChild(btn);
+            });
+        }
+
+        // 选择选项
+        function selectOption(selected, btn) {
+            if (gameState.answered) return;
+            gameState.answered = true;
+
+            let question = gameState.questions[gameState.currentQuestion];
+            let isCorrect = selected === question.dialect;
+
+            // 禁用所有按钮
+            document.querySelectorAll('.option-btn').forEach(b => {
+                b.disabled = true;
+                if (b.textContent.includes(question.dialect)) {
+                    b.classList.add('correct');
+                }
+            });
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                gameState.score += 10;
+                gameState.correct++;
+                showResult(true, question.dialect);
+            } else {
+                btn.classList.add('wrong');
+                gameState.wrong++;
+                showResult(false, question.dialect);
+            }
+
+            updateStats();
+            addHistoryItem(question.word, isCorrect, question.dialect);
+        }
+
+        // 显示提示
+        function showHint() {
+            document.getElementById('question-hint').classList.add('show');
+        }
+
+        // 跳过题目
+        function skipQuestion() {
+            if (gameState.answered) return;
+
+            let question = gameState.questions[gameState.currentQuestion];
+            gameState.wrong++;
+            updateStats();
+            addHistoryItem(question.word, false, question.dialect);
+
+            // 显示正确答案
+            document.querySelectorAll('.option-btn').forEach(b => {
+                b.disabled = true;
+                if (b.textContent.includes(question.dialect)) {
+                    b.classList.add('correct');
+                }
+            });
+
+            nextQuestion();
+        }
+
+        // 显示结果弹窗
+        function showResult(isCorrect, dialect) {
+            let popup = document.getElementById('result-popup');
+            let iconContainer = document.getElementById('result-icon-container');
+            let icon = document.getElementById('result-icon');
+            let title = document.getElementById('result-title');
+            let wordDisplay = document.getElementById('word-display');
+            let scoreInfo = document.getElementById('score-info');
+
+            let question = gameState.questions[gameState.currentQuestion];
+
+            if (isCorrect) {
+                icon.innerHTML = '<i class="fas fa-check-circle"></i>';
+                iconContainer.className = 'icon-container correct';
+                title.textContent = '回答正确！+10分';
+            } else {
+                icon.innerHTML = '<i class="fas fa-times-circle"></i>';
+                iconContainer.className = 'icon-container wrong';
+                title.textContent = '回答错误';
+            }
+
+            wordDisplay.textContent = `"${question.word}" - ${question.meaning}`;
+            scoreInfo.textContent = `正确答案：${dialect} | 本轮得分：${gameState.score}分`;
+
+            document.getElementById('overlay').classList.add('show');
+            popup.classList.add('show');
+        }
+
+        // 关闭结果弹窗
+        function closeResult() {
+            document.getElementById('result-popup').classList.remove('show');
+            document.getElementById('overlay').classList.remove('show');
+            nextQuestion();
+        }
+
+        // 下一题
+        function nextQuestion() {
+            gameState.currentQuestion++;
+
+            if (gameState.currentQuestion >= gameState.totalQuestions) {
+                endGame();
+                return;
+            }
+
+            showQuestion();
+        }
+
+        // 更新统计
+        function updateStats() {
+            document.getElementById('score').textContent = gameState.score;
+            document.getElementById('correct-count').textContent = gameState.correct;
+            document.getElementById('wrong-count').textContent = gameState.wrong;
+        }
+
+        // 添加历史记录
+        function addHistoryItem(word, isCorrect, dialect) {
+            let historyList = document.getElementById('history-list');
+
+            if (historyList.querySelector('.text-muted')) {
+                historyList.innerHTML = '';
+            }
+
+            let item = document.createElement('div');
+            item.className = `history-item ${isCorrect ? 'correct' : 'wrong'}`;
+            item.innerHTML = `
+                <span class="word">${word}</span>
+                <span class="result ${isCorrect ? 'correct' : 'wrong'}">
+                    ${isCorrect ? '正确' : '错误'} - ${dialect}
+                </span>
+            `;
+
+            historyList.insertBefore(item, historyList.firstChild);
+        }
+
+        // 开始计时器
+        function startTimer() {
+            if (gameState.timer) {
+                clearInterval(gameState.timer);
+            }
+
+            gameState.timer = setInterval(() => {
+                gameState.timeLeft--;
+                document.getElementById('timer').textContent = gameState.timeLeft;
+
+                if (gameState.timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        // 结束游戏
+        function endGame() {
+            gameState.isPlaying = false;
+
+            if (gameState.timer) {
+                clearInterval(gameState.timer);
+            }
+
+            let total = gameState.correct + gameState.wrong;
+            let accuracy = total > 0 ? Math.round(gameState.correct / total * 100) : 0;
+
+            document.getElementById('final-score').textContent = gameState.score;
+            document.getElementById('final-correct').textContent = gameState.correct;
+            document.getElementById('final-wrong').textContent = gameState.wrong;
+            document.getElementById('final-accuracy').textContent = accuracy + '%';
+
+            document.getElementById('overlay').classList.add('show');
+            document.getElementById('game-over-popup').classList.add('show');
+        }
+
+        // 重新开始
+        function restartGame() {
+            document.getElementById('game-over-popup').classList.remove('show');
+            document.getElementById('overlay').classList.remove('show');
+            startGame();
+        }
+
+        // 洗牌算法
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+    </script>
+{% endblock %}

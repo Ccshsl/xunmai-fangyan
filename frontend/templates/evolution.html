@@ -1,0 +1,1099 @@
+{% extends "base.html" %}
+{% block title %}语言演变模拟 - 寻脉方言系统{% endblock %}
+{% block head_styles %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-blue: #1e40af;
+            --secondary-blue: #3b82f6;
+            --cyan-glow: #06b6d4;
+            --teal-green: #14b8a6;
+            --mint-green: #10b981;
+            --primary-green: #059669;
+            --gradient-start: #1e40af;
+            --gradient-mid: #06b6d4;
+            --gradient-end: #059669;
+            --text-dark: #0f172a;
+            --text-light: #475569;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'Microsoft YaHei', 'PingFang SC', serif;
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 40%, var(--gradient-end) 100%);
+            color: var(--text-dark);
+            position: relative;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 动态渐变背景动画 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                135deg,
+                var(--gradient-start) 0%,
+                var(--gradient-mid) 30%,
+                var(--teal-green) 60%,
+                var(--gradient-end) 100%
+            );
+            background-size: 200% 200%;
+            animation: gradientShift 15s ease infinite;
+            pointer-events: none;
+            z-index: -2;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 动态光效层 */
+        .light-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        /* 发光圆环 */
+        .glow-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid rgba(6, 182, 212, 0.15);
+            animation: ringRotate 20s linear infinite;
+        }
+
+        .glow-ring:nth-child(1) {
+            width: 600px;
+            height: 600px;
+            top: -200px;
+            right: -100px;
+            border-color: rgba(30, 64, 175, 0.2);
+            animation-duration: 25s;
+        }
+
+        .glow-ring:nth-child(2) {
+            width: 400px;
+            height: 400px;
+            bottom: -100px;
+            left: -100px;
+            border-color: rgba(6, 182, 212, 0.25);
+            animation-duration: 18s;
+            animation-direction: reverse;
+        }
+
+        .glow-ring:nth-child(3) {
+            width: 300px;
+            height: 300px;
+            top: 40%;
+            left: 20%;
+            border-color: rgba(16, 185, 129, 0.2);
+            animation-duration: 15s;
+        }
+
+        @keyframes ringRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* 浮动光点 */
+        .float-light {
+            position: absolute;
+            border-radius: 50%;
+            animation: floatMove 10s ease-in-out infinite;
+        }
+
+        .float-light.blue {
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.6) 0%, transparent 70%);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5), 0 0 40px rgba(59, 130, 246, 0.3);
+        }
+
+        .float-light.cyan {
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.6) 0%, transparent 70%);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5), 0 0 40px rgba(6, 182, 212, 0.3);
+        }
+
+        .float-light.green {
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.6) 0%, transparent 70%);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.5), 0 0 40px rgba(16, 185, 129, 0.3);
+        }
+
+        @keyframes floatMove {
+            0%, 100% {
+                transform: translateY(0) translateX(0) scale(1);
+                opacity: 0.4;
+            }
+            25% {
+                transform: translateY(-30px) translateX(20px) scale(1.2);
+                opacity: 0.8;
+            }
+            50% {
+                transform: translateY(-50px) translateX(-10px) scale(1);
+                opacity: 0.6;
+            }
+            75% {
+                transform: translateY(-20px) translateX(-20px) scale(0.9);
+                opacity: 0.7;
+            }
+        }
+
+        /* 闪烁星点 */
+        .star {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s ease-in-out infinite;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), 0 0 60px rgba(6, 182, 212, 0.15);
+            padding: 1rem 0;
+        }
+
+        .navbar-brand {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 2.2rem !important;
+            color: #0ea5e9 !important;
+            letter-spacing: 0.1em;
+            font-weight: 500;
+        }
+        
+        .navbar-brand i {
+            font-size: 1.5rem;
+            color: var(--gradient-mid);
+        }
+
+        .nav-link {
+            color: var(--text-light) !important;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover {
+            color: var(--gradient-mid) !important;
+            transform: translateY(-2px);
+        }
+
+        .nav-link.active {
+            color: var(--gradient-start) !important;
+            font-weight: 600;
+        }
+
+        .page-header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            margin-left: 20px;
+            margin-right: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.5;
+        }
+
+        .page-header h1 {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 3.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .page-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 100%);
+            color: white;
+            border-radius: 16px 16px 0 0 !important;
+            padding: 1.2rem 1.5rem;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .control-label {
+            color: var(--gradient-start);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .control-value {
+            color: var(--gradient-mid);
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .slider-container {
+            margin: 1.5rem 0;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(to right, var(--gradient-start), var(--gradient-mid));
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary-green);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .btn-simulation {
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 100%);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-simulation:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(30, 64, 175, 0.3);
+        }
+
+        .btn-reset {
+            background: transparent;
+            color: var(--gradient-start);
+            border: 2px solid var(--gradient-start);
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-reset:hover {
+            background: rgba(30, 64, 175, 0.1);
+            color: var(--gradient-start);
+        }
+
+        .year-display {
+            font-family: 'ZCOOL KuaiLe', cursive;
+            font-size: 4rem;
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+        }
+
+        .year-label {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 1rem;
+            margin-top: -0.5rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 1.2rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-family: 'ZCOOL KuaiLe', cursive;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .dialect-bar {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .dialect-name {
+            font-weight: 600;
+            color: var(--gradient-start);
+            margin-bottom: 0.5rem;
+        }
+
+        .progress {
+            height: 24px;
+            border-radius: 12px;
+            background: rgba(30, 64, 175, 0.1);
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, var(--gradient-start), var(--gradient-mid));
+            border-radius: 12px;
+            transition: width 0.5s ease;
+        }
+
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            margin-right: 0.5rem;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-box h5 {
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .info-box ul {
+            margin-bottom: 0;
+            padding-left: 1.2rem;
+        }
+
+        .info-box li {
+            margin-bottom: 0.5rem;
+            opacity: 0.95;
+        }
+
+        .model-explanation {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .model-explanation h5 {
+            color: var(--gradient-start);
+            margin-bottom: 1rem;
+        }
+
+        .model-explanation p {
+            color: var(--text-light);
+            line-height: 1.8;
+            margin-bottom: 0;
+        }
+
+        footer {
+            background: rgba(0, 0, 0, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+            padding: 2rem 0;
+            margin-top: 3rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        footer h5 {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-links a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--mint-green);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .simulating {
+            animation: pulse 1s infinite;
+        }
+
+        @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 2.5rem;
+            }
+
+            .year-display {
+                font-size: 3rem;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <!-- 动态光效层 -->
+    <div class="light-layer" id="light-layer">
+        <!-- 发光圆环 -->
+        <div class="glow-ring"></div>
+        <div class="glow-ring"></div>
+        <div class="glow-ring"></div>
+    </div>
+
+    <!-- 页面标题 -->
+    <header class="page-header">
+        <div class="container text-center">
+            <h1><i class="fas fa-history me-2"></i>语言演变模拟</h1>
+            <p>基于元胞自动机与人口迁移模型，模拟方言在未来50年的变化趋势</p>
+        </div>
+    </header>
+
+    <!-- 主要内容 -->
+    <main class="container">
+        <!-- 说明卡片 -->
+        <div class="row mb-4">
+            <div class="col-lg-8">
+                <div class="info-box">
+                    <h5><i class="fas fa-info-circle me-2"></i>模型说明</h5>
+                    <ul>
+                        <li><strong>元胞自动机模型：</strong>模拟方言使用率每年受本地方言衰退和周边方言扩散的双重影响</li>
+                        <li><strong>人口迁移因素：</strong>城市化进程导致方言使用人口向城市聚集，加速方言分化</li>
+                        <li><strong>保护政策影响：</strong>可调节保护力度参数，评估不同政策效果</li>
+                        <li><strong>时间跨度：</strong>模拟从 {{ current_year }} 年到 {{ future_year }} 年共50年的演变过程</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="model-explanation">
+                    <h5><i class="fas fa-cogs me-2"></i>核心参数</h5>
+                    <p><strong>衰减率：</strong>每年本地方言使用率的自然下降速度</p>
+                    <p><strong>扩散率：</strong>周边方言对本地的影响程度</p>
+                    <p><strong>保护力度：</strong>政策干预对衰减的抵消效果</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- 左侧：控制面板 -->
+            <div class="col-lg-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-sliders-h me-2"></i>模拟参数控制
+                    </div>
+                    <div class="card-body">
+                        <!-- 年份显示 -->
+                        <div class="year-display" id="currentYear">{{ current_year }}</div>
+                        <div class="year-label">当前模拟年份</div>
+
+                        <!-- 衰减率控制 -->
+                        <div class="slider-container">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="control-label"><i class="fas fa-arrow-down me-1"></i>衰减率</span>
+                                <span class="control-value" id="decayValue">2.0%</span>
+                            </div>
+                            <input type="range" id="decayRate" min="0.5" max="5" step="0.1" value="2.0">
+                            <small class="text-muted">每年方言使用率的自然下降速度</small>
+                        </div>
+
+                        <!-- 扩散率控制 -->
+                        <div class="slider-container">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="control-label"><i class="fas fa-arrows-alt me-1"></i>扩散率</span>
+                                <span class="control-value" id="diffusionValue">3.0%</span>
+                            </div>
+                            <input type="range" id="diffusionRate" min="1" max="10" step="0.5" value="3.0">
+                            <small class="text-muted">周边方言对本地的影响程度</small>
+                        </div>
+
+                        <!-- 保护力度控制 -->
+                        <div class="slider-container">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="control-label"><i class="fas fa-shield-alt me-1"></i>保护力度</span>
+                                <span class="control-value" id="protectionValue">1.0%</span>
+                            </div>
+                            <input type="range" id="protectionRate" min="0" max="3" step="0.1" value="1.0">
+                            <small class="text-muted">政策干预对衰减的抵消效果</small>
+                        </div>
+
+                        <!-- 时间进度条 -->
+                        <div class="slider-container">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="control-label"><i class="fas fa-calendar-alt me-1"></i>模拟进度</span>
+                                <span class="control-value" id="progressValue">0/50年</span>
+                            </div>
+                            <input type="range" id="yearSlider" min="0" max="50" step="1" value="0">
+                        </div>
+
+                        <!-- 控制按钮 -->
+                        <div class="d-grid gap-3 mt-4">
+                            <button class="btn-simulation" id="startBtn" onclick="startSimulation()">
+                                <i class="fas fa-play me-2"></i>开始模拟
+                            </button>
+                            <button class="btn-reset" id="resetBtn" onclick="resetSimulation()">
+                                <i class="fas fa-redo me-2"></i>重置
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 统计卡片 -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-chart-pie me-2"></i>实时统计
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="stat-card">
+                                    <div class="stat-value" id="avgUsage">--%</div>
+                                    <div class="stat-label">平均使用率</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-card">
+                                    <div class="stat-value" id="avgChange">--%</div>
+                                    <div class="stat-label">平均变化</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-card">
+                                    <div class="stat-value" id="highRisk">--</div>
+                                    <div class="stat-label">高危方言</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-card">
+                                    <div class="stat-value" id="safeCount">--</div>
+                                    <div class="stat-label">安全方言</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧：图表展示 -->
+            <div class="col-lg-8">
+                <!-- 演变趋势图 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-line-chart me-2"></i>方言使用率演变趋势
+                        <div class="float-end" style="font-size: 0.85rem; font-weight: normal;">
+                            <span class="legend-item">
+                                <span class="legend-color" style="background: var(--gradient-start);"></span>初始
+                            </span>
+                            <span class="legend-item">
+                                <span class="legend-color" style="background: var(--gradient-mid);"></span>当前
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="evolutionChart" height="300"></canvas>
+                    </div>
+                </div>
+
+                <!-- 各方言区使用率对比 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-chart-bar me-2"></i>各方言区使用率对比
+                    </div>
+                    <div class="card-body">
+                        <canvas id="comparisonChart" height="250"></canvas>
+                    </div>
+                </div>
+
+                <!-- 详细数据展示 -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-list-ul me-2"></i>各地方言使用率详情
+                        <span class="float-end" style="font-size: 0.85rem; font-weight: normal;">
+                            显示年份：<span id="detailYear">{{ current_year }}</span>年
+                        </span>
+                    </div>
+                    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                        <div id="dialectDetails">
+                            {% for item in dialect_data %}
+                            <div class="dialect-bar">
+                                <div class="dialect-name">
+                                    <i class="fas fa-map-marker-alt me-1"></i>{{ item.city }} ({{ item.dialect_area }})
+                                    <span class="float-end" style="font-size: 0.9rem;">
+                                        <span id="rate-{{ loop.index }}">{{ (item.initial_rate * 100) | int }}%</span>
+                                    </span>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar" id="progress-{{ loop.index }}"
+                                         style="width: {{ (item.initial_rate * 100) | int }}%"></div>
+                                </div>
+                                <small class="text-muted" id="change-{{ loop.index }}">
+                                    初始：{{ (item.initial_rate * 100) | int }}% → 当前：{{ (item.initial_rate * 100) | int }}%
+                                </small>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 风险评估报告 -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <i class="fas fa-exclamation-triangle me-2"></i>50年后风险评估
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="p-3 rounded" style="background: #fef2f2; border-left: 4px solid #ef4444;">
+                            <h6 style="color: #ef4444;"><i class="fas fa-exclamation-circle me-1"></i>高危方言</h6>
+                            <p class="mb-0" id="highRiskList">--</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="p-3 rounded" style="background: #fffbeb; border-left: 4px solid #f59e0b;">
+                            <h6 style="color: #f59e0b;"><i class="fas fa-exclamation-triangle me-1"></i>中危方言</h6>
+                            <p class="mb-0" id="mediumRiskList">--</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="p-3 rounded" style="background: #f0fdf4; border-left: 4px solid var(--secondary-green);">
+                            <h6 style="color: var(--secondary-green);"><i class="fas fa-check-circle me-1"></i>低危方言</h6>
+                            <p class="mb-0" id="lowRiskList">--</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+{% endblock %}
+
+{% block scripts %}
+        <script>
+            // 创建动态背景元素（优化性能）
+            function createDynamicBackground() {
+                // 创建少量气泡
+                for (let i = 0; i < 3; i++) {
+                    const bubble = document.createElement('div');
+                    bubble.className = 'bubble';
+                    bubble.style.left = Math.random() * 100 + '%';
+                    bubble.style.width = bubble.style.height = (25 + Math.random() * 25) + 'px';
+                    bubble.style.animationDuration = (20 + Math.random() * 15) + 's';
+                    bubble.style.animationDelay = Math.random() * 10 + 's';
+                    bubble.style.transform = 'translateZ(0)';
+                    document.body.appendChild(bubble);
+                }
+                
+                // 创建少量星点
+                for (let i = 0; i < 5; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star';
+                    star.style.left = Math.random() * 100 + '%';
+                    star.style.top = Math.random() * 100 + '%';
+                    star.style.animationDuration = (3 + Math.random() * 2) + 's';
+                    star.style.animationDelay = Math.random() * 2 + 's';
+                    document.body.appendChild(star);
+                }
+            }
+            
+            window.addEventListener('load', createDynamicBackground);
+        </script>
+        <script>
+            // 全局变量
+            let currentYear = {{ current_year }};
+            let decayRate = 0.02;
+            let diffusionRate = 0.03;
+            let protectionRate = 0.01;
+            let currentYearIndex = 0;
+            let simulationHistory = [];
+            let isSimulating = false;
+            let simulationInterval = null;
+
+            // 方言数据
+            const dialectData = {{ dialect_data_json | safe }};
+
+        // 初始化图表
+        let evolutionChart, comparisonChart;
+
+        function initCharts() {
+            // 演变趋势图
+            const evolutionCtx = document.getElementById('evolutionChart').getContext('2d');
+            evolutionChart = new Chart(evolutionCtx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 51}, (_, i) => currentYear + i),
+                    datasets: [{
+                        label: '平均使用率',
+                        data: dialectData.map(d => d.initial_rate * 100),
+                        borderColor: 'var(--gradient-mid)',
+                        backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '方言使用率50年演变趋势',
+                            font: { size: 16, weight: 'bold' }
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: '使用率 (%)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: '年份'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 对比柱状图
+            const comparisonCtx = document.getElementById('comparisonChart').getContext('2d');
+            comparisonChart = new Chart(comparisonCtx, {
+                type: 'bar',
+                data: {
+                    labels: dialectData.map(d => d.dialect_area),
+                    datasets: [{
+                        label: '初始使用率',
+                        data: dialectData.map(d => d.initial_rate * 100),
+                        backgroundColor: 'var(--gradient-start)',
+                        borderRadius: 8
+                    }, {
+                        label: '当前使用率',
+                        data: dialectData.map(d => d.current_rate * 100),
+                        backgroundColor: 'var(--gradient-mid)',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '各方言区使用率对比',
+                            font: { size: 16, weight: 'bold' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: '使用率 (%)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 元胞自动机模拟
+        function simulateYear() {
+            const newRates = dialectData.map((d, i) => {
+                // 基础衰减
+                let newRate = d.current_rate * (1 - decayRate);
+                
+                // 保护效果
+                newRate += protectionRate;
+                
+                // 扩散效果（考虑周边方言）
+                const neighborInfluence = calculateNeighborInfluence(i);
+                newRate = newRate * (1 - diffusionRate) + neighborInfluence * diffusionRate;
+                
+                return Math.max(0, Math.min(1, newRate));
+            });
+
+            return newRates;
+        }
+
+        // 计算周边方言影响
+        function calculateNeighborInfluence(currentIndex) {
+            const neighbors = getNeighbors(currentIndex);
+            if (neighbors.length === 0) return dialectData[currentIndex].current_rate;
+            
+            const neighborRates = neighbors.map(i => dialectData[i].current_rate);
+            return neighborRates.reduce((a, b) => a + b, 0) / neighborRates.length;
+        }
+
+        // 获取邻居节点
+        function getNeighbors(index) {
+            // 基于方言区划分的邻接关系
+            const adjacency = {
+                0: [1, 2], // 东北官话
+                1: [0, 3], // 北京官话
+                2: [4], // 冀鲁官话
+                3: [1, 5], // 胶辽官话
+                4: [2, 5], // 中原官话
+                5: [3, 4], // 兰银官话
+            };
+            
+            return adjacency[index] || [];
+        }
+
+        // 开始模拟
+        function startSimulation() {
+            if (isSimulating) {
+                stopSimulation();
+                return;
+            }
+
+            isSimulating = true;
+            document.getElementById('startBtn').innerHTML = '<i class="fas fa-pause me-2"></i>暂停模拟';
+            document.getElementById('startBtn').classList.add('simulating');
+
+            simulationInterval = setInterval(() => {
+                if (currentYearIndex < 50) {
+                    currentYearIndex++;
+                    updateSimulation();
+                } else {
+                    stopSimulation();
+                }
+            }, 200);
+        }
+
+        // 停止模拟
+        function stopSimulation() {
+            isSimulating = false;
+            if (simulationInterval) {
+                clearInterval(simulationInterval);
+                simulationInterval = null;
+            }
+            document.getElementById('startBtn').innerHTML = '<i class="fas fa-play me-2"></i>继续模拟';
+            document.getElementById('startBtn').classList.remove('simulating');
+        }
+
+        // 更新模拟
+        function updateSimulation() {
+            // 更新数据
+            const newRates = simulateYear();
+            newRates.forEach((rate, i) => {
+                dialectData[i].current_rate = rate;
+            });
+
+            // 更新UI
+            document.getElementById('currentYear').textContent = currentYear + currentYearIndex;
+            document.getElementById('progressValue').textContent = `${currentYearIndex}/50年`;
+            document.getElementById('yearSlider').value = currentYearIndex;
+            document.getElementById('detailYear').textContent = currentYear + currentYearIndex;
+
+            // 更新统计
+            updateStatistics();
+
+            // 更新图表
+            updateCharts();
+
+            // 更新详情
+            updateDialectDetails();
+        }
+
+        // 更新统计信息
+        function updateStatistics() {
+            const rates = dialectData.map(d => d.current_rate);
+            const avgUsage = rates.reduce((a, b) => a + b, 0) / rates.length * 100;
+            const initialAvg = dialectData.reduce((a, d) => a + d.initial_rate, 0) / dialectData.length * 100;
+            const avgChange = avgUsage - initialAvg;
+
+            document.getElementById('avgUsage').textContent = avgUsage.toFixed(1) + '%';
+            document.getElementById('avgChange').textContent = (avgChange >= 0 ? '+' : '') + avgChange.toFixed(1) + '%';
+
+            const highRiskCount = rates.filter(r => r < 0.3).length;
+            const safeCount = rates.filter(r => r >= 0.6).length;
+
+            document.getElementById('highRisk').textContent = highRiskCount;
+            document.getElementById('safeCount').textContent = safeCount;
+        }
+
+        // 更新图表
+        function updateCharts() {
+            // 更新演变图
+            evolutionChart.data.datasets[0].data = dialectData.map(d => d.current_rate * 100);
+            evolutionChart.update('none');
+
+            // 更新柱状图
+            comparisonChart.data.datasets[1].data = dialectData.map(d => d.current_rate * 100);
+            comparisonChart.update('none');
+        }
+
+        // 更新方言详情
+        function updateDialectDetails() {
+            dialectData.forEach((d, i) => {
+                const ratePercent = (d.current_rate * 100).toFixed(0);
+                const changePercent = ((d.current_rate - d.initial_rate) * 100).toFixed(0);
+                const changeSign = changePercent >= 0 ? '+' : '';
+                
+                document.getElementById(`rate-${i + 1}`).textContent = ratePercent + '%';
+                document.getElementById(`progress-${i + 1}`).style.width = ratePercent + '%';
+                document.getElementById(`change-${i + 1}`).textContent = 
+                    `初始：${(d.initial_rate * 100).toFixed(0)}% → 当前：${ratePercent}% (${changeSign}${changePercent}%)`;
+            });
+        }
+
+        // 重置模拟
+        function resetSimulation() {
+            stopSimulation();
+            currentYearIndex = 0;
+            
+            dialectData.forEach(d => {
+                d.current_rate = d.initial_rate;
+            });
+
+            document.getElementById('currentYear').textContent = currentYear;
+            document.getElementById('progressValue').textContent = '0/50年';
+            document.getElementById('yearSlider').value = 0;
+            document.getElementById('detailYear').textContent = currentYear;
+            document.getElementById('startBtn').innerHTML = '<i class="fas fa-play me-2"></i>开始模拟';
+
+            updateStatistics();
+            updateCharts();
+            updateDialectDetails();
+        }
+
+        // 滑块控制
+        document.getElementById('decayRate').addEventListener('input', function() {
+            decayRate = parseFloat(this.value) / 100;
+            document.getElementById('decayValue').textContent = this.value + '%';
+        });
+
+        document.getElementById('diffusionRate').addEventListener('input', function() {
+            diffusionRate = parseFloat(this.value) / 100;
+            document.getElementById('diffusionValue').textContent = this.value + '%';
+        });
+
+        document.getElementById('protectionRate').addEventListener('input', function() {
+            protectionRate = parseFloat(this.value) / 100;
+            document.getElementById('protectionValue').textContent = this.value + '%';
+        });
+
+        document.getElementById('yearSlider').addEventListener('input', function() {
+            const targetYear = parseInt(this.value);
+            
+            if (targetYear < currentYearIndex) {
+                // 后退，直接重置到目标年份
+                resetSimulation();
+                currentYearIndex = targetYear;
+                for (let y = 0; y < targetYear; y++) {
+                    const newRates = simulateYear();
+                    newRates.forEach((rate, i) => {
+                        dialectData[i].current_rate = rate;
+                    });
+                }
+                document.getElementById('currentYear').textContent = currentYear + currentYearIndex;
+                document.getElementById('progressValue').textContent = `${currentYearIndex}/50年`;
+                document.getElementById('detailYear').textContent = currentYear + currentYearIndex;
+                updateStatistics();
+                updateCharts();
+                updateDialectDetails();
+            } else if (targetYear > currentYearIndex) {
+                // 前进，逐步模拟
+                stopSimulation();
+                for (let y = currentYearIndex; y < targetYear; y++) {
+                    const newRates = simulateYear();
+                    newRates.forEach((rate, i) => {
+                        dialectData[i].current_rate = rate;
+                    });
+                    currentYearIndex++;
+                }
+                document.getElementById('currentYear').textContent = currentYear + currentYearIndex;
+                document.getElementById('progressValue').textContent = `${currentYearIndex}/50年`;
+                document.getElementById('detailYear').textContent = currentYear + currentYearIndex;
+                updateStatistics();
+                updateCharts();
+                updateDialectDetails();
+            }
+        });
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initCharts();
+            updateStatistics();
+            updateDialectDetails();
+        });
+    </script>
+{% endblock %}

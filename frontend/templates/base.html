@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}寻脉 - 方言地理分布与语言演变可视化教学平台{% endblock %}</title>
+    <!-- 公共 CDN 资源 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+    <!-- 全局样式（迁移自原 style.css） -->
+    <link rel="stylesheet" href="/static/css/base.css">
+    {% block head_styles %}{% endblock %}
+</head>
+<body>
+    <!-- 公共导航栏（子页面可覆盖） -->
+    {% block navbar %}
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-mountain me-1"></i> 寻脉
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="/"><i class="fas fa-home me-1"></i>首页</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/map"><i class="fas fa-map me-1"></i>方言地图</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/statistics"><i class="fas fa-chart-bar me-1"></i>统计分析</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/evolution"><i class="fas fa-globe me-1"></i>演变模拟</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/migration"><i class="fas fa-route me-1"></i>历史探究</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/game"><i class="fas fa-gamepad me-1"></i>方言游戏</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    {% endblock %}
+
+    {% block content %}{% endblock %}
+
+    <!-- 公共页脚（子页面可覆盖） -->
+    {% block footer %}
+    <footer class="py-5">
+        <div class="container text-center">
+            <p class="mb-2">
+                <i class="fas fa-mountain me-2"></i>
+                <span style="font-family: 'Ma Shan Zheng', cursive; font-size: 1.4rem;">寻脉</span>
+                - 方言地理分布与语言演变可视化教学平台
+            </p>
+            <p class="text-white-50 text-sm">适用于地理课堂跨学科教学</p>
+        </div>
+    </footer>
+    {% endblock %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

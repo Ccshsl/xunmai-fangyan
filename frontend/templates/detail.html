@@ -1,0 +1,422 @@
+{% extends "base.html" %}
+{% block title %}{{ city }} - 方言详情{% endblock %}
+{% block head_styles %}
+    <style>
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), 0 0 60px rgba(6, 182, 212, 0.15);
+        }
+
+        .navbar-brand {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 2.2rem !important;
+            color: #0ea5e9 !important;
+            letter-spacing: 0.1em;
+            font-weight: 500;
+        }
+        
+        .navbar-brand i {
+            font-size: 1.5rem;
+            color: var(--gradient-mid);
+        }
+
+        .nav-link {
+            color: var(--text-light) !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--gradient-mid) !important;
+            transform: translateY(-2px);
+        }
+
+        .hero-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 60px 0;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            margin-left: 20px;
+            margin-right: 20px;
+        }
+
+        .section-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .section-card:hover {
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .section-title {
+            color: var(--gradient-start);
+            border-bottom: 3px solid var(--gradient-mid);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            border: 1px solid rgba(6, 182, 212, 0.2);
+        }
+
+        .info-item:hover {
+            transform: translateX(10px);
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(16, 185, 129, 0.15) 100%);
+        }
+
+        .info-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            margin-right: 15px;
+            box-shadow: 0 3px 15px rgba(30, 64, 175, 0.4);
+        }
+
+        .dialect-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--secondary-green) 0%, var(--light-green) 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            margin: 5px;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(64, 145, 108, 0.2);
+        }
+
+        .culture-item {
+            background: linear-gradient(135deg, rgba(216, 243, 220, 0.5) 0%, rgba(149, 213, 178, 0.3) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--secondary-green);
+            border: 1px solid rgba(82, 183, 136, 0.15);
+        }
+
+        .culture-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .feature-word {
+            display: inline-block;
+            background: white;
+            border: 2px solid var(--secondary-green);
+            padding: 8px 15px;
+            border-radius: 8px;
+            margin: 5px;
+            font-weight: bold;
+            color: var(--primary-green);
+            transition: all 0.3s;
+        }
+
+        .feature-word:hover {
+            background: var(--pale-green);
+            border-color: var(--light-green);
+        }
+
+        .danger-badge {
+            display: inline-block;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .badge-safe { background: var(--secondary-green); }
+        .badge-safe2 { background: var(--light-green); }
+        .badge-vulnerable { background: #f59e0b; }
+        .badge-endangered { background: #ef4444; }
+        .city-title {
+            font-family: 'Noto Serif SC', serif;
+            color: var(--primary-green);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-green);
+        }
+
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .gallery-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(45, 106, 79, 0.1);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.1);
+        }
+
+        .gallery-caption {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(45, 106, 79, 0.85);
+            color: white;
+            padding: 8px;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .btn-primary-green {
+            background: linear-gradient(135deg, var(--secondary-green) 0%, var(--light-green) 100%);
+            border: none;
+            color: white;
+            padding: 12px 35px;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 12px rgba(64, 145, 108, 0.3);
+        }
+
+        .btn-primary-green:hover {
+            background: linear-gradient(135deg, var(--light-green) 0%, var(--mint-green) 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(64, 145, 108, 0.4);
+            color: white;
+        }
+
+        footer {
+            background: linear-gradient(180deg, var(--primary-green) 0%, #1b4332 100%);
+            color: white;
+            margin-top: 50px;
+        }
+
+        footer .fas {
+            color: var(--mint-green);
+        }
+
+        .text-justify {
+            text-align: justify;
+            line-height: 1.8;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <!-- 动态背景元素 -->
+    <div class="bg-glow-1"></div>
+    <div class="bg-glow-2"></div>
+    <div class="bg-glow-3"></div>
+
+    <div class="hero-section">
+        <div class="container text-center">
+            <h1 class="display-4 mb-3 city-title">{{ city }}</h1>
+            <p class="lead mb-3">{{ province }} · {{ dialect_area }}</p>
+            <span class="danger-badge {{ 'badge-safe' if endanger_level == '安全' else 'badge-safe2' if endanger_level == '较安全' else 'badge-vulnerable' if endanger_level == '脆弱' else 'badge-endangered' }}">{{ endanger_level }}</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="section-card">
+            <h2 class="section-title"><i class="fas fa-map-marker-alt"></i> 基本地理信息</h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fas fa-city"></i></div>
+                        <div>
+                            <div class="text-muted small">城市名称</div>
+                            <div class="font-weight-bold">{{ city }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fas fa-flag"></i></div>
+                        <div>
+                            <div class="text-muted small">所属省份</div>
+                            <div class="font-weight-bold">{{ province }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fas fa-language"></i></div>
+                        <div>
+                            <div class="text-muted small">方言区划</div>
+                            <div class="font-weight-bold">{{ dialect_area }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fas fa-map-pin"></i></div>
+                        <div>
+                            <div class="text-muted small">地理坐标</div>
+                            <div class="font-weight-bold">经度: {{ longitude }} / 纬度: {{ latitude }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <h2 class="section-title"><i class="fas fa-chart-bar"></i> 使用数据统计</h2>
+            <div class="row text-center">
+                <div class="col-md-4">
+                    <div class="p-4 rounded-lg" style="background: linear-gradient(135deg, rgba(216, 243, 220, 0.6) 0%, rgba(149, 213, 178, 0.4) 100%);">
+                        <div class="stat-number">{{ population_10k }}</div>
+                        <div class="text-muted">万人</div>
+                        <div class="small text-muted mt-2">使用人口</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-4 rounded-lg" style="background: linear-gradient(135deg, rgba(216, 243, 220, 0.6) 0%, rgba(149, 213, 178, 0.4) 100%);">
+                        <div class="stat-number">{{ "%.1f"|format(youth_usage_rate * 100) }}%</div>
+                        <div class="text-muted">%</div>
+                        <div class="small text-muted mt-2">年轻人使用率</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-4 rounded-lg" style="background: linear-gradient(135deg, rgba(216, 243, 220, 0.6) 0%, rgba(149, 213, 178, 0.4) 100%);">
+                        <div class="stat-number">{{ "%.2f"|format(endanger_index) }}</div>
+                        <div class="text-muted"></div>
+                        <div class="small text-muted mt-2">濒危指数</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <h2 class="section-title"><i class="fas fa-book-open"></i> 方言介绍</h2>
+            <div class="row">
+                <div class="col-lg-8">
+                    <p class="lead text-justify">{{ dialect_intro }}</p>
+                    
+                    <div class="mt-4">
+                        <h5 class="mb-3" style="color: var(--primary-green);"><i class="fas fa-star"></i> 方言特色</h5>
+                        <p class="text-justify">{{ dialect_feature }}</p>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h5 class="mb-3" style="color: var(--primary-green);"><i class="fas fa-history"></i> 历史背景</h5>
+                        <p class="text-justify">{{ dialect_history }}</p>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h5 class="mb-3" style="color: var(--primary-green);"><i class="fas fa-users"></i> 文化影响</h5>
+                        <p class="text-justify">{{ dialect_culture }}</p>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="p-4 rounded-lg" style="background: linear-gradient(135deg, rgba(216, 243, 220, 0.6) 0%, rgba(149, 213, 178, 0.4) 100%); border: 1px solid rgba(82, 183, 136, 0.2);">
+                        <h5 class="mb-3" style="color: var(--primary-green);"><i class="fas fa-tag"></i> 语言标签</h5>
+                        <div class="mb-3">
+                            {% for tag in dialect_tags %}
+                            <span class="dialect-tag">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                        
+                        <h5 class="mb-3 mt-4" style="color: var(--primary-green);"><i class="fas fa-microphone"></i> 特色词汇</h5>
+                        {% for word in feature_words %}
+                        <span class="feature-word">{{ word }}</span>
+                        {% endfor %}
+                        
+                        <h5 class="mb-3 mt-4" style="color: var(--primary-green);"><i class="fas fa-volume-up"></i> 常用表达</h5>
+                        <ul class="list-group" style="border: 1px solid rgba(82, 183, 136, 0.2);">
+                            {% for exp in common_phrases %}
+                            <li class="list-group-item" style="background: rgba(255,255,255,0.7);">{{ exp }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <h2 class="section-title"><i class="fas fa-theater-masks"></i> 人文特色</h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="culture-item">
+                        <h5 style="color: var(--primary-green);"><i class="fas fa-utensils"></i> 地方美食</h5>
+                        <p class="text-justify">{{ local_food }}</p>
+                    </div>
+                    <div class="culture-item">
+                        <h5 style="color: var(--primary-green);"><i class="fas fa-music"></i> 民间艺术</h5>
+                        <p class="text-justify">{{ folk_art }}</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="culture-item">
+                        <h5 style="color: var(--primary-green);"><i class="fas fa-landmark"></i> 历史遗迹</h5>
+                        <p class="text-justify">{{ historical_sites }}</p>
+                    </div>
+                    <div class="culture-item">
+                        <h5 style="color: var(--primary-green);"><i class="fas fa-calendar-alt"></i> 传统节日</h5>
+                        <p class="text-justify">{{ traditional_festival }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <h2 class="section-title"><i class="fas fa-globe-asia"></i> 同方言区其他城市</h2>
+            <div class="row">
+                {% for related in related_cities %}
+                <div class="col-md-4 mb-3">
+                    <a href="/detail/{{ related }}" class="text-decoration-none">
+                        <div class="info-item">
+                            <div class="info-icon"><i class="fas fa-city"></i></div>
+                            <div>
+                                <div class="font-weight-bold" style="color: var(--primary-green);">{{ related }}</div>
+                                <div class="small text-muted">点击查看详情</div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="text-center mb-5">
+            <a href="/map" class="btn btn-primary-green">
+                <i class="fas fa-arrow-left"></i> 返回地图
+            </a>
+        </div>
+    </div>
+{% endblock %}
