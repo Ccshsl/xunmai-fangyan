@@ -7,12 +7,12 @@ __pycache__/
 venv/
 
 # 输出产物（图片/生成地图，保留 CSV 便于后端读取）
-outputs/*.png
-outputs/*.jpg
-outputs/*.jpeg
-outputs/*.gif
-outputs/*.html
-outputs/.cache/
+**/outputs/*.png
+**/outputs/*.jpg
+**/outputs/*.jpeg
+**/outputs/*.gif
+**/outputs/*.html
+**/outputs/.cache/
 
 # 备份压缩包
 *.zip
